@@ -1,3 +1,8 @@
+// enabling use of getline()
+#define _DEFAULT_SOURCE
+#define _BSD_SOURCE
+#define _GNU_SOURCE
+
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -6,15 +11,14 @@
 
 #define MAX_LENGTH 200
 #define MAX_TOKENS 30
-#define NUM_BUILTINS 1
 #define PATH_SIZE pathconf(".", _PC_PATH_MAX)
 
 /*
  * Second attempt at writing a shell,
- * now with more C knowledge (chapter 1...)
+ * now with more C knowledge (chapters 1,4,5,6 in K&R + kilo.c tutorial)
  */
 
-int cd(char argv[][MAX_LENGTH], int argc) {
+int cd(char **argv, int argc) {
     if (argc == 2)
         return -chdir(argv[1]);
     else {
@@ -23,26 +27,48 @@ int cd(char argv[][MAX_LENGTH], int argc) {
     }
 }
 
-static char* BUILTIN_NAMES[NUM_BUILTINS] = {
+static char* BUILTIN_NAMES[] = {
     "cd"
 };
 
-static int (*BUILTINS[NUM_BUILTINS]) (char[][MAX_LENGTH], int) = {
+static int (*BUILTINS[]) (char**, int) = {
     cd
 };
 
+#define NUM_BUILTINS (sizeof(BUILTINS) / sizeof(BUILTINS[0]))
+
+void die(char *msg) {
+    perror(msg);
+    exit(EXIT_FAILURE);
+}
+
+/* Reads a line and stores its length in len */
+char *read_line(int *len) {
+    char *line = NULL;
+    size_t linelen;
+    ssize_t charsread;
+    if ((charsread = getline(&line, &linelen, stdin)) == -1) {
+        free(line); // as the manual says, it must be freed.
+        return NULL; // indicate that getline failed (or reached EOF)
+    } else if (charsread > 0 && line[charsread - 1] == '\n') {
+        line[--charsread] = '\0'; // delete the newline
+    }
+    (*len) = (int) charsread;
+    return line;
+}
+
 enum { OUTSIDE, IN_WORD, IN_STRING };
 
-int split_input(char tokens[][MAX_LENGTH]) {
+int split_input(char tokens[][MAX_LENGTH], const char *input, const int len) {
+    // note: the len parameter will be useful for validation later.
     int i, n, c, state;
 
     i = 0, n = 0;
     state = OUTSIDE;
-    while ((c = getchar()) != EOF && c != '\n') {
+    while ((c = *input++) != '\0') {
+        // TODO increase size of token string/array if it's too small
         if (n > MAX_TOKENS || i > MAX_LENGTH) {
-            printf("Max amount of tokens, or chars in token, exceeded!\n");
-            while (getchar() != '\n')
-                ;
+            fprintf(stderr, "Max amount of tokens, or chars in token, exceeded!\n");
             return -1;
         }
 
@@ -65,7 +91,7 @@ int split_input(char tokens[][MAX_LENGTH]) {
                 }
                 break;
             case IN_STRING:
-                if (c == '"') { // TODO: check if whitespace follows
+                if (c == '"') { // TODO: check if whitespace follows?
                     state = OUTSIDE;
                     tokens[n++][i] = '\0';
                     i = 0;
@@ -74,8 +100,13 @@ int split_input(char tokens[][MAX_LENGTH]) {
                 }
                 break;
             default:
-                printf("Invalid state\n");
+                fprintf(stderr, "Invalid state\n");
         }
+    }
+    if (state == IN_STRING) {
+        fprintf(stderr, "No matching \" found!\n");
+        // free
+        return -1;
     }
     if (i) {
         tokens[n][i] = '\0';
@@ -134,6 +165,9 @@ int main() {
     char *cwd;
     char *cwd_buffer = (char*) malloc((size_t)PATH_SIZE);
 
+    int len = 0;
+    char *line = NULL;
+
     printf("Welcome to ne[sh]ie, the absurdly stupid shell!\n");
 
     while (1) {
@@ -146,8 +180,14 @@ int main() {
 
         status = -1;
 
+        line = read_line(&len);
+        if (!line) {
+            // simply exit on EOF
+            exit_status = EXIT_SUCCESS;
+            break;
+        }
         // Read and split input
-        count = split_input(tokens);
+        count = split_input(tokens, line, len);
         if (count < 0)
             continue;
         if (debug) {
@@ -158,7 +198,7 @@ int main() {
         // Handle builtins
         for (int i = 0; i < NUM_BUILTINS; i++) {
             if (strcmp(tokens[0], BUILTIN_NAMES[i]) == 0) {
-                status = BUILTINS[i](tokens, count);
+                status = BUILTINS[i]((char **)tokens, count);
                 continue;
             }
         }
