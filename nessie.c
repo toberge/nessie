@@ -12,6 +12,8 @@
 #define MAX_LENGTH 200
 #define MAX_TOKENS 30
 #define PATH_SIZE pathconf(".", _PC_PATH_MAX)
+#define NESSIE_TOKEN_LENGTH 64
+#define NESSIE_TOKEN_ARRAY_LENGTH 32
 
 /*
  * Second attempt at writing a shell,
@@ -19,9 +21,9 @@
  */
 
 int cd(char **argv, int argc) {
-    if (argc == 2)
+    if (argc == 2) {
         return -chdir(argv[1]);
-    else {
+    } else {
         perror("cd: Invalid number of arguments");
         return 1;
     }
@@ -59,17 +61,26 @@ char *read_line(int *len) {
 
 enum { OUTSIDE, IN_WORD, IN_STRING };
 
-int split_input(char tokens[][MAX_LENGTH], const char *input, const int len) {
+char **split_input(const char *input, const int len, int *num_tokens) {
     // note: the len parameter will be useful for validation later.
     int i, n, c, state;
+
+    char **tokens = malloc(NESSIE_TOKEN_ARRAY_LENGTH*sizeof(char*));
+    tokens[0] = malloc(NESSIE_TOKEN_LENGTH*sizeof(char));
+    long arrlen = NESSIE_TOKEN_ARRAY_LENGTH;
+    long toklen = NESSIE_TOKEN_LENGTH;
 
     i = 0, n = 0;
     state = OUTSIDE;
     while ((c = *input++) != '\0') {
-        // TODO increase size of token string/array if it's too small
-        if (n > MAX_TOKENS || i > MAX_LENGTH) {
-            fprintf(stderr, "Max amount of tokens, or chars in token, exceeded!\n");
-            return -1;
+        // Reallocate memory of array or string if full
+        if (n >= arrlen) {
+            arrlen += arrlen / 3;
+            tokens = realloc(tokens, arrlen);
+        }
+        if (i >= toklen) {
+            toklen += toklen / 3;
+            tokens[n] = realloc(tokens[n], toklen);
         }
 
         switch (state) {
@@ -85,6 +96,9 @@ int split_input(char tokens[][MAX_LENGTH], const char *input, const int len) {
                 if (c == ' ') {
                     state = OUTSIDE;
                     tokens[n++][i] = '\0';
+                    // new token! TODO no code duplication
+                    tokens[n] = malloc(NESSIE_TOKEN_LENGTH*sizeof(char));
+                    toklen = NESSIE_TOKEN_LENGTH;
                     i = 0;
                 } else {
                     tokens[n][i++] = c;
@@ -94,6 +108,9 @@ int split_input(char tokens[][MAX_LENGTH], const char *input, const int len) {
                 if (c == '"') { // TODO: check if whitespace follows?
                     state = OUTSIDE;
                     tokens[n++][i] = '\0';
+                    // new token! TODO no code duplication
+                    tokens[n] = malloc(NESSIE_TOKEN_LENGTH*sizeof(char));
+                    toklen = NESSIE_TOKEN_LENGTH;
                     i = 0;
                 } else {
                     tokens[n][i++] = c;
@@ -105,34 +122,28 @@ int split_input(char tokens[][MAX_LENGTH], const char *input, const int len) {
     }
     if (state == IN_STRING) {
         fprintf(stderr, "No matching \" found!\n");
-        // free
-        return -1;
+        // Free token array
+        *num_tokens = 0;
+        free(tokens);
+        return NULL;
     }
     if (i) {
         tokens[n][i] = '\0';
         n++;
     }
-    return n;
+    *num_tokens = n;
+    return tokens;
 }
 
-void printarr(char arr[][MAX_LENGTH], int len) {
+void printarr(char **arr, int len) {
     for (int i = 0; i < len-1; i++) {
         printf("'%s', ", arr[i]);
     }
-    printf("'%s'\n", arr[len-1]);
-}
-
-void arrcpy(char from[][MAX_LENGTH], char to[][MAX_LENGTH], int amount) {
-    for (int i = 0; i < amount; i++) {
-        int j = 0;
-        while (from[i][j] != '\0')
-            to[i][j] = from[i][j], j++;
-        to[i][j] = '\0';
-    }
+    printf("'%s'\n", arr[len-1]); // clang complains: bad sign?
 }
 
 /* Forks and executes command */
-int execute_command(char tokens[][MAX_LENGTH], int argc) {
+int execute_command(char **tokens, int argc) {
     if (argc < 1) return 0;
 
     int status;
@@ -158,9 +169,12 @@ int execute_command(char tokens[][MAX_LENGTH], int argc) {
     return status;
 }
 
-int main() {
-    char tokens[MAX_TOKENS][MAX_LENGTH] = {{'\0'}};
+
+int main(int argc, char **argv) {
+    char **tokens;
     int count, status = 0, debug = 0, exit_status = 0;
+    if (argc == 2 && strcmp("--debug", argv[1]) == 0)
+        debug = 1;
 
     char *cwd;
     char *cwd_buffer = (char*) malloc((size_t)PATH_SIZE);
@@ -187,9 +201,12 @@ int main() {
             break;
         }
         // Read and split input
-        count = split_input(tokens, line, len);
-        if (count < 0)
+        tokens = split_input(line, len, &count);
+        if (count <= 0 || tokens == NULL) {
+            free(tokens);
+            status = 0;
             continue;
+        }
         if (debug) {
             printf("Read %i tokens: ", count);
             printarr(tokens, count);
@@ -199,12 +216,15 @@ int main() {
         for (int i = 0; i < NUM_BUILTINS; i++) {
             if (strcmp(tokens[0], BUILTIN_NAMES[i]) == 0) {
                 status = BUILTINS[i]((char **)tokens, count);
+                free(tokens);
                 continue;
             }
         }
 
-        if (status != -1) // cmd was a builtin
+        if (status != -1) { // cmd was a builtin
+            free(tokens);
             continue;
+        }
 
         // Handle exit
         if (strcmp(tokens[0], "exit") == 0)
@@ -222,8 +242,11 @@ int main() {
         } else if (status == 256) {
             printf("No such command or directory: %s\n", tokens[0]);
         }
+
+        free(tokens);
     }
 
+    free(tokens);
     free(cwd_buffer);
 
     return exit_status;
