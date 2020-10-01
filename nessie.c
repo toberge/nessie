@@ -9,16 +9,23 @@
 #include <unistd.h>
 #include <sys/wait.h>
 
-#define MAX_LENGTH 200
-#define MAX_TOKENS 30
 #define PATH_SIZE pathconf(".", _PC_PATH_MAX)
+
+// lexer constants
 #define NESSIE_TOKEN_LENGTH 64
 #define NESSIE_TOKEN_ARRAY_LENGTH 32
+
+// additional status codes
+#define NESSIE_EXIT_SUCCESS -3
+#define NESSIE_EXIT_FAILURE -4
 
 /*
  * Second attempt at writing a shell,
  * now with more C knowledge (chapters 1,4,5,6 in K&R + kilo.c tutorial)
  */
+
+// global debug option
+int debug = 0;
 
 int cd(char **argv, int argc) {
     if (argc == 2) {
@@ -37,7 +44,8 @@ static int (*BUILTINS[]) (char**, int) = {
     cd
 };
 
-#define NUM_BUILTINS (sizeof(BUILTINS) / sizeof(BUILTINS[0]))
+// there will never be more than an int's value of builtins
+#define NUM_BUILTINS (int)(sizeof(BUILTINS) / sizeof(BUILTINS[0]))
 
 void die(char *msg) {
     perror(msg);
@@ -148,18 +156,22 @@ int execute_command(char **tokens, int argc) {
 
     int status;
     pid_t child_pid = fork();
-    if (child_pid) {
-        // parent process, wait for child to finish
+    if (child_pid > 0) {
+        // In parent process, wait for child to finish
         do {
             waitpid(child_pid, &status, WUNTRACED);
         } while (!WIFEXITED(status) && !WIFSIGNALED(status));
+        // Then get actual exit status!
+        status = WEXITSTATUS(status);
     } else if (child_pid == 0) {
-        // child process, execute command!
+        // In child process, execute command!
         char *argv[argc+1]; // create copy with ONLY current amount of args
         for (int i = 0; i < argc; i++)
             argv[i] = tokens[i];
         argv[argc] = NULL; // required by the standard (!!!)
-        status = execvp(tokens[0], (char * const*) argv);
+        execvp(tokens[0], (char * const*) argv);
+        // If execvp returned, it is always a failure.
+        exit(127);
     } else {
         // negative pid -> error forking
         printf("Error while forking!\n");
@@ -169,10 +181,45 @@ int execute_command(char **tokens, int argc) {
     return status;
 }
 
+int launch_command(char **tokens, int count) {
+    if (count <= 0 || tokens == NULL) {
+        return 0;
+    }
+    if (debug) {
+        printf("Read %i tokens: ", count);
+        printarr(tokens, count);
+    }
+
+    // Handle builtins
+    for (int i = 0; i < NUM_BUILTINS; i++) {
+        if (strcmp(tokens[0], BUILTIN_NAMES[i]) == 0) {
+            return BUILTINS[i]((char **)tokens, count);
+        }
+    }
+
+    // Handle exit
+    if (strcmp(tokens[0], "exit") == 0)
+        return NESSIE_EXIT_SUCCESS;
+    else if (tokens[0][0] == 'q')
+        return NESSIE_EXIT_SUCCESS;
+
+    // Turns out it's not a builtin, execute command!
+    int status = execute_command(tokens, count);
+    if (status < 0) {
+        return NESSIE_EXIT_FAILURE;
+    } else if (status == 127) { // Unknown command!
+        if (chdir(tokens[0]) == 0) // Try cd-ing with it!
+            return 0;
+        // Otherwise, it is neither a command nor a directory.
+        printf("No such command or directory: %s\n", tokens[0]);
+        return status;
+    }
+    return status; // return point for normal exit codes
+}
 
 int main(int argc, char **argv) {
     char **tokens;
-    int count, status = 0, debug = 0, exit_status = 0;
+    int count, status = 0;
     if (argc == 2 && strcmp("--debug", argv[1]) == 0)
         debug = 1;
 
@@ -184,7 +231,7 @@ int main(int argc, char **argv) {
 
     printf("Welcome to ne[sh]ie, the absurdly stupid shell!\n");
 
-    while (1) {
+    while (status >= 0) {
         // Display prompt
         cwd = getcwd(cwd_buffer, (size_t)PATH_SIZE);
         if (status)
@@ -192,62 +239,27 @@ int main(int argc, char **argv) {
         else
             printf("%s \033[33m$\033[0m ", cwd);
 
-        status = -1;
-
         line = read_line(&len);
         if (!line) {
             // simply exit on EOF
-            exit_status = EXIT_SUCCESS;
+            status = NESSIE_EXIT_SUCCESS;
             break;
         }
         // Read and split input
         tokens = split_input(line, len, &count);
-        if (count <= 0 || tokens == NULL) {
-            free(tokens);
-            status = 0;
-            continue;
-        }
-        if (debug) {
-            printf("Read %i tokens: ", count);
-            printarr(tokens, count);
-        }
-
-        // Handle builtins
-        for (int i = 0; i < NUM_BUILTINS; i++) {
-            if (strcmp(tokens[0], BUILTIN_NAMES[i]) == 0) {
-                status = BUILTINS[i]((char **)tokens, count);
-                free(tokens);
-                continue;
-            }
-        }
-
-        if (status != -1) { // cmd was a builtin
-            free(tokens);
-            continue;
-        }
-
-        // Handle exit
-        if (strcmp(tokens[0], "exit") == 0)
-            break;
-        else if (tokens[0][0] == 'q')
-            break;
-
-        // Turns out it's not a builtin, execute command!
-        status = execute_command(tokens, count);
-        if (status < 0) {
-            exit_status = 1;
-            break;
-        } else if (chdir(tokens[0]) == 0) {
-            status = 0; // since it's not a command, try cd-ing with it!
-        } else if (status == 256) {
-            printf("No such command or directory: %s\n", tokens[0]);
-        }
-
+        status = launch_command(tokens, count);
         free(tokens);
     }
 
-    free(tokens);
     free(cwd_buffer);
 
-    return exit_status;
+    switch (status) {
+        case NESSIE_EXIT_SUCCESS:
+            return EXIT_SUCCESS;
+        case NESSIE_EXIT_FAILURE:
+            return EXIT_FAILURE;
+        default:
+            fprintf(stderr, "An unknown error occured\n");
+            return -status;
+    }
 }
