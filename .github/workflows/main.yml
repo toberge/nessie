@@ -1,0 +1,13 @@
+name: Tests
+
+on: [push]
+
+jobs:
+  fuzzer_tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v1
+      - name: Run fuzzer tests
+        run: |
+          make test
