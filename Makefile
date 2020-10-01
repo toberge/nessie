@@ -1,10 +1,11 @@
-.PHONY: all run debug install install-local clean
+CFLAGS = -Wall -Wextra -pedantic -std=c99
+
+.PHONY: all test run debug install install-local clean
 
 all: nessie
 
-nessie: nessie.c
-	$(CC) nessie.c -o nessie \
-	    -Wall -Wextra -pedantic -std=c99
+nessie: nessie.c nessie.h lexer.c builtins.c executor.c
+	$(CC) *.c -o nessie $(CFLAGS)
 
 install: nessie
 	cp -f nessie /usr/local/bin
