@@ -59,6 +59,7 @@ char **split_input(const char *input, const int len, int *num_tokens) {
             case IN_WORD:
                 if (c == ' ') {
                     state = OUTSIDE;
+                    tokens[n] = realloc(tokens[n], (i+2)*sizeof(char));
                     tokens[n++][i] = '\0';
                     // new token! TODO no code duplication
                     tokens[n] = malloc(NESSIE_TOKEN_LENGTH*sizeof(char));
@@ -71,6 +72,7 @@ char **split_input(const char *input, const int len, int *num_tokens) {
             case IN_STRING:
                 if (c == '"') { // TODO: check if whitespace follows?
                     state = OUTSIDE;
+                    tokens[n] = realloc(tokens[n], (i+2)*sizeof(char));
                     tokens[n++][i] = '\0';
                     // new token! TODO no code duplication
                     tokens[n] = malloc(NESSIE_TOKEN_LENGTH*sizeof(char));

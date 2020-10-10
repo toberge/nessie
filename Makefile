@@ -4,7 +4,7 @@ CFLAGS = -Wall -Wextra -pedantic -std=c99
 
 all: nessie
 
-nessie: nessie.c nessie.h lexer.c builtins.c executor.c
+nessie: nessie.c nessie.h lexer.c builtins.c parser.c executor.c
 	$(CC) *.c -o nessie $(CFLAGS)
 
 test: lexer.c tests/*.c

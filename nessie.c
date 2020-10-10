@@ -44,7 +44,7 @@ int main(int argc, char **argv) {
         }
         // Read and split input
         tokens = split_input(line, len, &count);
-        status = launch_command(tokens, count);
+        status = parse_and_execute(tokens, count);
         free(tokens);
     }
 
