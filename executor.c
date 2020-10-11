@@ -20,7 +20,7 @@ void printarr(char **arr, int len) {
     for (int i = 0; i < len-1; i++) {
         printf("'%s', ", arr[i]);
     }
-    printf("'%s'\n", arr[len-1]); // clang complains: bad sign?
+    printf("'%s'\n", arr[len-1]);
 }
 
 // Call execvp() with supplied arguments. Will never return.
@@ -58,10 +58,27 @@ int execute_syntax_tree(ASTNode *node) {
         case NESSIE_STATEMENT:
             if (node->next_node) {
                 // Run child command, then proceed
+                // (this is where set -e will be handled later)
                 execute_syntax_tree(node->child_node);
                 return execute_syntax_tree(node->next_node);
             } else {
                 return execute_syntax_tree(node->child_node);
+            }
+        case NESSIE_OR:
+            {
+                // Use exit status to determine if execution should continue
+                int status = execute_syntax_tree(node->child_node);
+                if (status != 0) // command failed, go on
+                    return execute_syntax_tree(node->next_node);
+                return status;
+            }
+        case NESSIE_AND:
+            {
+                // Use exit status to determine if execution should continue
+                int status = execute_syntax_tree(node->child_node);
+                if (status == 0) // command exec'd fine, go on
+                    return execute_syntax_tree(node->next_node);
+                return status;
             }
         default:
             fprintf(stderr, "Not implemented\n");

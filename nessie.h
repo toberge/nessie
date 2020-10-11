@@ -39,7 +39,8 @@ enum nessieSyntax {
     NESSIE_SYNTAX_ERROR,
     NESSIE_STATEMENT,
     NESSIE_COMMAND,
-    NESSIE_PIPE_CHAIN
+    NESSIE_AND,
+    NESSIE_OR
 };
 
 struct ASTNode_st;

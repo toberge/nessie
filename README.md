@@ -12,7 +12,7 @@ Minimal shell written in C.
   + Currently w/o builtins
 + [x] Multiple statements terminated by `;`
   + Currently requires surrounding the semicolon with whitespace
-+ [ ] Conditional execution with `&&` and `||`
++ [x] Conditional execution with `&&` and `||`
 + [ ] History (at least as builtin)
 + [ ] Variables
 + [ ] Some keybinds (requires raw mode + rework of input code)
