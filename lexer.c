@@ -32,7 +32,7 @@ char *read_line(int *len) {
 
 enum { OUTSIDE, IN_WORD, IN_STRING };
 
-char **split_input(const char *input, const int len, int *num_tokens) {
+char **split_input(const char *input, int *num_tokens) {
     // note: the len parameter will be useful for validation later.
     int i, n, c, state;
 

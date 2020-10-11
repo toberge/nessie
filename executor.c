@@ -195,7 +195,7 @@ int launch_command(char **tokens, int count) {
     if (count <= 0 || tokens == NULL) {
         return 0;
     }
-    if (DEBUG) {
+    if (O.debug) {
         printf("Read %i tokens: ", count);
         printarr(tokens, count);
     }

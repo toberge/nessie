@@ -16,8 +16,12 @@
 #define PIPE_WRITE 1
 #define PIPE_READ 0
 
-// redo the debug handling somehow
-#define DEBUG 0
+// struct for varous options
+struct Option_st {
+    int debug;
+};
+
+extern struct Option_st O;
 
 // {{{ Builtins
 
@@ -28,7 +32,7 @@ int cd(char **argv, int argc);
 // {{{ Lexer
 
 char *read_line(int *len);
-char **split_input(const char *input, const int len, int *num_tokens);
+char **split_input(const char *input, int *num_tokens);
 void free_tokens(char **tokens, int len);
 
 // }}}
