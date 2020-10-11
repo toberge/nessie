@@ -16,11 +16,17 @@ void die(char *msg) {
     exit(EXIT_FAILURE);
 }
 
+void display_prompt(int status, char *cwd) {
+    if (status)
+        printf("\033[31;1m[%i]\033[0m %s \033[33m$\033[0m ", status, cwd);
+    else
+        printf("%s \033[33m$\033[0m ", cwd);
+}
+
 int main(int argc, char **argv) {
     char **tokens;
     int count, status = 0;
 
-    char *cwd;
     char *cwd_buffer = (char*) malloc((size_t)PATH_SIZE);
 
     int len = 0;
@@ -30,11 +36,7 @@ int main(int argc, char **argv) {
 
     while (status >= 0) {
         // Display prompt
-        cwd = getcwd(cwd_buffer, (size_t)PATH_SIZE);
-        if (status)
-            printf("\033[31;1m[%i]\033[0m %s \033[33m$\033[0m ", status, cwd);
-        else
-            printf("%s \033[33m$\033[0m ", cwd);
+        display_prompt(status, getcwd(cwd_buffer, (size_t)PATH_SIZE));
 
         line = read_line(&len);
         if (!line) {
