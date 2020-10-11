@@ -55,6 +55,14 @@ int execute_syntax_tree(ASTNode *node) {
                 return pipe_start(node);
             else
                 return launch_command(node->content, node->contentlen);
+        case NESSIE_STATEMENT:
+            if (node->next_node) {
+                // Run child command, then proceed
+                execute_syntax_tree(node->child_node);
+                return execute_syntax_tree(node->next_node);
+            } else {
+                return execute_syntax_tree(node->child_node);
+            }
         default:
             fprintf(stderr, "Not implemented\n");
             return 1;
