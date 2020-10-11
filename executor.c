@@ -153,53 +153,6 @@ int pipe_start(ASTNode *node) {
     return status;
 }
 
-// Pipe output from cmd1 to cmd2 to stdout
-int pipe_commands(char **argv1, int argc1, char **argv2, int argc2) {
-    if (argc1 < 1 || argc2 < 1) return 0;
-
-    int status = -1;
-
-    int fd[2];
-    pipe(fd); // create a pipe - write to fd[0], read from fd[1]
-
-    pid_t child_pid = fork();
-
-    if (child_pid > 0) {
-        // Parent will fork again
-        child_pid = fork();
-        // TODO: This should _end_ dynamically
-        //       The shell should _only_ wait at the tail end
-        //       of the pipe chain. Recursion FTW!
-
-        if (child_pid > 0) {
-            // Parent will close fds and wait
-            close(fd[PIPE_READ]);
-            close(fd[PIPE_WRITE]);
-            status = parent_wait(child_pid);
-        } else if (child_pid == 0) {
-            // Child will route pipe output to stdin
-            dup2(fd[PIPE_READ], STDIN_FILENO);
-            close(fd[PIPE_WRITE]);
-            close(fd[PIPE_READ]);
-            child_exec(argv2, argc2);
-        } else {
-            fprintf(stderr, "Error while forking!\n");
-            status = -1;
-        }
-    } else if (child_pid == 0) {
-        // Child will route stdin to pipe input
-        dup2(fd[PIPE_WRITE], STDOUT_FILENO);
-        close(fd[PIPE_READ]);
-        close(fd[PIPE_WRITE]);
-        child_exec(argv1, argc1);
-    } else {
-        fprintf(stderr, "Error while forking!\n");
-        status = -1;
-    }
-
-    return status;
-}
-
 /* Forks and executes command */
 int execute_command(char **tokens, int argc) {
     if (argc < 1) return 0;
