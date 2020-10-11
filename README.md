@@ -8,9 +8,12 @@ Minimal shell written in C.
 
 + [x] Fork and execute commands
 + [x] `cd` with builtin or by typing a folder name
-+ [x] Piping (currently w/o builtins)
++ [x] Piping
+  + Currently w/o builtins
++ [x] Multiple statements terminated by `;`
+  + Currently requires surrounding the semicolon with whitespace
++ [ ] Conditional execution with `&&` and `||`
 + [ ] History (at least as builtin)
-+ [ ] Multiple statements terminated by `;`
 + [ ] Variables
 + [ ] Some keybinds (requires raw mode + rework of input code)
 
@@ -19,8 +22,14 @@ Minimal shell written in C.
 Nessie's grammar is pretty minimal for the time being
 
 ```
-LINE := STATEMENT [; STATEMENT]*
-STATEMENT := COMMAND [| COMMAND]*
+LINE      := STATEMENT [; STATEMENT]*
+STATEMENT := COMMAND
+           | COMMAND && STATEMENT
+           | COMMAND || STATEMENT
+COMMAND   := PROG [ARG]* [| COMMAND]*
+PROG, ARG := WORD
+           | "WORD [WORD]*"
+WORD      := <just continuous text>
 ```
 
 ## Resources used
