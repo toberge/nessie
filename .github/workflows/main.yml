@@ -3,11 +3,20 @@ name: Tests
 on: [push]
 
 jobs:
+  unit_tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - name: Run unit tests with Bats
+        run: |
+          sudo apt-get install bats
+          sudo make install
+          make test
+
   fuzzer_tests:
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v1
       - name: Run fuzzer tests
         run: |
-          make test
+          make fuzzer
