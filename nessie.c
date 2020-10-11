@@ -44,8 +44,11 @@ int main(int argc, char **argv) {
         }
         // Read and split input
         tokens = split_input(line, len, &count);
-        status = parse_and_execute(tokens, count);
-        free(tokens);
+        /* status = parse_and_execute(tokens, count); */
+        ASTNode *tree = parse_line(tokens, count);
+        status = execute_syntax_tree(tree);
+        free_ASTNode(tree);
+        free_tokens(tokens, count);
     }
 
     free(cwd_buffer);
@@ -56,7 +59,7 @@ int main(int argc, char **argv) {
         case NESSIE_EXIT_FAILURE:
             return EXIT_FAILURE;
         default:
-            fprintf(stderr, "An unknown error occured\n");
+            fprintf(stderr, "An unknown error occured: %d\n", status);
             return -status;
     }
 }

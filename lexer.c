@@ -8,6 +8,13 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+// Free all strings in given array
+void free_tokens(char **tokens, int len) {
+    for (int i = 0; i < len; i++)
+        free(tokens[i]);
+    free(tokens);
+}
+
 /* Reads a line and stores its length in len */
 char *read_line(int *len) {
     char *line = NULL;
@@ -90,12 +97,14 @@ char **split_input(const char *input, const int len, int *num_tokens) {
         fprintf(stderr, "No matching \" found!\n");
         // Free token array
         *num_tokens = 0;
-        free(tokens);
+        free_tokens(tokens, n+1);
         return NULL;
     }
     if (i) {
         tokens[n][i] = '\0';
         n++;
+    } else if (!n) { // no tokens acquired
+        free(tokens[0]);
     }
     *num_tokens = n;
     return tokens;

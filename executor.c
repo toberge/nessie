@@ -46,6 +46,105 @@ int parent_wait(pid_t child_pid) {
     return WEXITSTATUS(status);
 }
 
+int pipe_start(ASTNode *node);
+
+int execute_syntax_tree(ASTNode *node) {
+    switch(node->type) {
+        case NESSIE_COMMAND:
+            if (node->next_node)
+                return pipe_start(node);
+            else
+                return launch_command(node->content, node->contentlen);
+        default:
+            fprintf(stderr, "Not implemented\n");
+            return 1;
+    }
+}
+
+int pipe_end(ASTNode *node, int fd[2]) {
+    int status = -1;
+    // Parent will fork again
+    int child_pid = fork();
+
+    if (child_pid > 0) {
+        // Parent will close fds and wait
+        close(fd[PIPE_READ]);
+        close(fd[PIPE_WRITE]);
+        status = parent_wait(child_pid);
+    } else if (child_pid == 0) {
+        // Child will route pipe output to stdin
+        dup2(fd[PIPE_READ], STDIN_FILENO);
+        close(fd[PIPE_WRITE]);
+        close(fd[PIPE_READ]);
+        child_exec(node->content, node->contentlen);
+    } else {
+        fprintf(stderr, "Error while forking!\n");
+        status = -1;
+    }
+    return status;
+}
+
+int pipe_inner(ASTNode *node, int old_fd[2]) {
+    // Create a new pipe
+    int next_fd[2];
+    pipe(next_fd);
+    int status = -1;
+    // Parent will fork again
+    int child_pid = fork();
+
+    if (child_pid > 0) {
+        // Parent will close old fds and continue
+        close(old_fd[PIPE_READ]);
+        close(old_fd[PIPE_WRITE]);
+        if (node->next_node->next_node)
+            status = pipe_inner(node->next_node, next_fd);
+        else
+            status = pipe_end(node->next_node, next_fd);
+    } else if (child_pid == 0) {
+        // Child will route old pipe's output to stdin
+        // - and route stdout to next pipe's input
+        dup2(old_fd[PIPE_READ], STDIN_FILENO);
+        close(old_fd[PIPE_WRITE]);
+        close(old_fd[PIPE_READ]);
+        dup2(next_fd[PIPE_WRITE], STDOUT_FILENO);
+        close(next_fd[PIPE_READ]);
+        close(next_fd[PIPE_WRITE]);
+        child_exec(node->content, node->contentlen);
+    } else {
+        fprintf(stderr, "Error while forking!\n");
+        status = -1;
+    }
+    return status;
+}
+
+int pipe_start(ASTNode *node) {
+    if (node->contentlen < 1) return 0;
+
+    int status = -1;
+    int fd[2];
+    pipe(fd); // create a pipe - write to fd[1], read from fd[0]
+
+    pid_t child_pid = fork();
+
+    if (child_pid > 0) {
+        if (node->next_node->next_node)
+            status = pipe_inner(node->next_node, fd);
+        else
+            status = pipe_end(node->next_node, fd);
+    } else if (child_pid == 0) {
+        // Child will route stdin to pipe input
+        dup2(fd[PIPE_WRITE], STDOUT_FILENO);
+        close(fd[PIPE_READ]);
+        close(fd[PIPE_WRITE]);
+        child_exec(node->content, node->contentlen);
+    } else {
+        fprintf(stderr, "Error while forking!\n");
+        status = -1;
+    }
+
+    return status;
+}
+
 // Pipe output from cmd1 to cmd2 to stdout
 int pipe_commands(char **argv1, int argc1, char **argv2, int argc2) {
     if (argc1 < 1 || argc2 < 1) return 0;

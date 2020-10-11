@@ -13,6 +13,8 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
     
     int num_tokens;
     char **tokens = split_input(instring, size, &num_tokens);
+    for (int i = 0; i < num_tokens; i++)
+        free(tokens[i]);
     free(tokens);
     free(instring);
     return 0;
