@@ -21,9 +21,9 @@ void die(char *msg) {
 
 void display_prompt(int status, char *cwd) {
     if (status)
-        printf("\033[31;1m[%i]\033[0m %s \033[33m$\033[0m ", status, cwd);
+        printf("\033[31;1m[%i]\033[0m \033[32m%s\033[0m \033[34m$\033[0m ", status, cwd);
     else
-        printf("%s \033[33m$\033[0m ", cwd);
+        printf("\033[32m%s\033[0m \033[34m$\033[0m ", cwd);
 }
 
 int single_command_run(char *line) {
