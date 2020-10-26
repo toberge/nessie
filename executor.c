@@ -6,11 +6,15 @@
 #include <sys/wait.h>
 
 static char* BUILTIN_NAMES[] = {
-    "cd"
+    "cd",
+    "exit",
+    "q"
 };
 
 static int (*BUILTINS[]) (char**, int) = {
-    cd
+    cd,
+    nessie_exit,
+    nessie_exit
 };
 
 // there will never be more than an int's value of builtins
@@ -59,7 +63,8 @@ int execute_syntax_tree(ASTNode *node) {
             if (node->next_node) {
                 // Run child command, then proceed
                 // (this is where set -e will be handled later)
-                execute_syntax_tree(node->child_node);
+                int status = execute_syntax_tree(node->child_node);
+                if (status == NESSIE_EXIT_SUCCESS) return status; // exit!
                 return execute_syntax_tree(node->next_node);
             } else {
                 return execute_syntax_tree(node->child_node);
@@ -68,6 +73,7 @@ int execute_syntax_tree(ASTNode *node) {
             {
                 // Use exit status to determine if execution should continue
                 int status = execute_syntax_tree(node->child_node);
+                if (status == NESSIE_EXIT_SUCCESS) return status; // exit!
                 if (status != 0) // command failed, go on
                     return execute_syntax_tree(node->next_node);
                 return status;
@@ -76,6 +82,7 @@ int execute_syntax_tree(ASTNode *node) {
             {
                 // Use exit status to determine if execution should continue
                 int status = execute_syntax_tree(node->child_node);
+                if (status == NESSIE_EXIT_SUCCESS) return status; // exit!
                 if (status == 0) // command exec'd fine, go on
                     return execute_syntax_tree(node->next_node);
                 return status;
@@ -206,12 +213,6 @@ int launch_command(char **tokens, int count) {
             return BUILTINS[i]((char **)tokens, count);
         }
     }
-
-    // Handle exit
-    if (strcmp(tokens[0], "exit") == 0)
-        return NESSIE_EXIT_SUCCESS;
-    else if (tokens[0][0] == 'q')
-        return NESSIE_EXIT_SUCCESS;
 
     // Turns out it's not a builtin, execute command!
     int status = execute_command(tokens, count);

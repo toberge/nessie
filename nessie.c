@@ -19,6 +19,9 @@ void die(char *msg) {
     exit(EXIT_FAILURE);
 }
 
+/**
+ * Display a prompt with current exit status and working directory
+ */
 void display_prompt(int status, char *cwd) {
     if (status)
         printf("\033[31;1m[%i]\033[0m \033[32m%s\033[0m \033[34m$\033[0m ", status, cwd);
@@ -26,6 +29,11 @@ void display_prompt(int status, char *cwd) {
         printf("\033[32m%s\033[0m \033[34m$\033[0m ", cwd);
 }
 
+/**
+ * Run nessie in non-interactive mode
+ *
+ * @returns exit code for the shell
+ */
 int single_command_run(char *line) {
     int count, status;
     char **tokens = split_input(line, &count);
@@ -33,9 +41,23 @@ int single_command_run(char *line) {
     status = execute_syntax_tree(tree);
     free_ASTNode(tree);
     free_tokens(tokens, count);
-    return status;
+
+    // Just in case some negative status appears
+    switch (status) {
+        case NESSIE_EXIT_SUCCESS:
+            return EXIT_SUCCESS;
+        case NESSIE_EXIT_FAILURE:
+            return EXIT_FAILURE;
+        default:
+            return status;
+    }
 }
 
+/**
+ * Run nessie in interactive mode
+ *
+ * @returns exit code for the shell
+ */
 int interactive_run() {
     char **tokens;
     int count, status = 0;

@@ -26,6 +26,7 @@ extern struct Option_st O;
 // {{{ Builtins
 
 int cd(char **argv, int argc);
+int nessie_exit(char **argv, int argc);
 
 // }}}
 

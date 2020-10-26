@@ -17,6 +17,18 @@
     [ "$output" = "/tmp" ]
 }
 
+@test "exit exits the shell" {
+    run nessie -c "exit ; seq 1 100"
+    [ "$status" -eq 0 ]
+    [ "${#lines[@]}" -eq 0 ]
+}
+
+@test "exit does not always trigger" {
+    run nessie -c "false && exit ; true || exit ; echo correct"
+    [ "$status" -eq 0 ]
+    [ "$output" = "correct" ]
+}
+
 # Piping
 
 @test "pipes output through a pair of commands" {
