@@ -105,7 +105,12 @@ char **split_input(const char *input, int *num_tokens) {
         n++;
     } else if (!n) { // no tokens acquired
         free(tokens[0]);
+        free(tokens);
+        *num_tokens = 0;
+        return NULL;
+    } else if (!i) { // last tokens has size 0
+        free(tokens[n--]);
     }
     *num_tokens = n;
-    return tokens;
+    return realloc(tokens, n*sizeof(char*));
 }
