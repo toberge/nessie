@@ -17,6 +17,22 @@ Minimal shell written in C.
 + [ ] Variables
 + [ ] Some keybinds (requires raw mode + rework of input code)
 
+## Requirements
+
+Nessie depends on nothing but the tools required to build it – `make` and a C compiler – and some regular Linux syscalls.
+
+Running the tests requires `bats` and/or `clang`.
+
+## Installation
+
+Run `make install` or `make install-local` (or `make` and put the binary wherever you want).
+
+You should now be able to execute `nessie` as a regular command, or run it locally with `./nessie`.
+
+## Testing
+
+Run unit tests with `make test` or fuzzer tests with `make fuzz`.
+
 ## Grammar
 
 Nessie's grammar is pretty minimal for the time being
