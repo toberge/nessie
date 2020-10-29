@@ -25,9 +25,9 @@ Running the tests requires `bats` and/or `clang`.
 
 ## Installation
 
-Run `make install` or `make install-local` (or `make` and put the binary wherever you want).
+Run `make install` or `make install-local`. Alternatively, simply run `make` and put the binary wherever you want.
 
-You should now be able to execute `nessie` as a regular command, or run it locally with `./nessie`.
+You should now be able to execute `nessie` as a regular command, or run the binary with `./nessie`.
 
 ## Testing
 
