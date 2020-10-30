@@ -27,8 +27,22 @@ void printarr(char **arr, int len) {
     printf("'%s'\n", arr[len-1]);
 }
 
-// Call execvp() with supplied arguments. Will never return.
+// Call execvp() (or a builtin) with supplied arguments. Will never return.
 void child_exec(char **tokens, int argc) {
+    // Handle builtins
+    for (int i = 0; i < NUM_BUILTINS; i++) {
+        if (strcmp(tokens[0], BUILTIN_NAMES[i]) == 0) {
+            int status = BUILTINS[i]((char **)tokens, argc);
+            // Handle special exit codes...
+            // TODO: Extract this to a function?
+            if (status == NESSIE_EXIT_SUCCESS)
+                exit(EXIT_SUCCESS);
+            if (status == NESSIE_EXIT_FAILURE)
+                exit(EXIT_FAILURE);
+            exit(status);
+        }
+    }
+
     // In child process, execute command!
     char *argv[argc+1]; // create copy with ONLY current amount of args
     for (int i = 0; i < argc; i++)

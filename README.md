@@ -9,7 +9,6 @@ Minimal shell written in C.
 + [x] Fork and execute commands
 + [x] `cd` with builtin or by typing a folder name
 + [x] Piping
-  + Currently w/o builtins
 + [x] Multiple statements terminated by `;`
   + Currently requires surrounding the semicolon with whitespace
 + [x] Conditional execution with `&&` and `||`
