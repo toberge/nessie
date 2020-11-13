@@ -27,6 +27,9 @@ extern struct Option_st O;
 
 int cd(char **argv, int argc);
 int nessie_exit(char **argv, int argc);
+int nessie_help(char **argv, int argc);
+int nessie_true(char **argv, int argc);
+int nessie_false(char **argv, int argc);
 
 // }}}
 

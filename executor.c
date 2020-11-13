@@ -8,13 +8,19 @@
 static char* BUILTIN_NAMES[] = {
     "cd",
     "exit",
-    "q"
+    "q",
+    "help",
+    "true",
+    "false"
 };
 
 static int (*BUILTINS[]) (char**, int) = {
     cd,
     nessie_exit,
-    nessie_exit
+    nessie_exit,
+    nessie_help,
+    nessie_true,
+    nessie_false
 };
 
 // there will never be more than an int's value of builtins
