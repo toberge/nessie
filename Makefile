@@ -35,8 +35,12 @@ install: nessie nessie.1
 	cp nessie.1 /usr/local/man/man1/nessie.1
 	gzip /usr/local/man/man1/nessie.1
 
-install-local:
+install-local: nessie
 	cp -f nessie ~/.local/bin
+
+install-ci: nessie
+	# This does not require pandoc
+	cp -f nessie /usr/local/bin
 
 clean:
 	rm -f nessie nessie.1

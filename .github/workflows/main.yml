@@ -10,7 +10,7 @@ jobs:
       - name: Run unit tests with Bats
         run: |
           sudo apt-get install bats
-          sudo make install
+          sudo make install-ci
           make test
 
   fuzzer_tests:
