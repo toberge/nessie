@@ -20,7 +20,7 @@ void die(char *msg) {
 }
 
 /**
- * Display a prompt with current exit status and working directory
+ * Display
  */
 void display_prompt(int status, char *cwd) {
     if (status)
@@ -109,12 +109,13 @@ int main(int argc, char **argv) {
     while (1) {
         int option_index;
         static struct option long_options[] = {
-            { "debug", no_argument, &O.debug, 1 }, // currently does not work
+            { "debug", no_argument, &O.debug, 'd' }, // currently does not work
             { "command", required_argument, 0, 'c' },
+            { "help", no_argument, 0, 'h' },
             { 0, 0, 0, 0 }
         };
 
-        int c = getopt_long (argc, argv, "c:",
+        int c = getopt_long (argc, argv, "dc:h",
                              long_options, &option_index);
 
         if (c == -1)
@@ -122,11 +123,14 @@ int main(int argc, char **argv) {
 
         switch (c) {
             case 0:
-                // Long option!
-                // ...it must have been --debug
+                // long option
                 break;
             case 'c':
                 command = optarg;
+                break;
+            case 'h':
+                nessie_help(NULL, 0);
+                exit(EXIT_SUCCESS);
                 break;
             case '?':
                 break;

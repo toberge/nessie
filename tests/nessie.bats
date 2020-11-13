@@ -9,6 +9,17 @@
     [ "$status" -eq 127 ]
 }
 
+# Options
+
+@test "--help shows some information" {
+    run nessie -c "nessie --help"
+    [ "$status" -eq 0 ]
+    [ "${#lines[@]}" -ne 0 ]
+    run nessie -c "nessie -h"
+    [ "$status" -eq 0 ]
+    [ "${#lines[@]}" -ne 0 ]
+}
+
 # Builtins
 
 @test "cd changes working directory" {
@@ -27,6 +38,12 @@
     run nessie -c "false && exit ; true || exit ; echo correct"
     [ "$status" -eq 0 ]
     [ "$output" = "correct" ]
+}
+
+@test "help shows some information" {
+    run nessie -c "help"
+    [ "$status" -eq 0 ]
+    [ "${#lines[@]}" -ne 0 ]
 }
 
 # Piping

@@ -32,7 +32,8 @@ int nessie_exit(__attribute__((unused)) char **argv, __attribute__((unused)) int
  */
 int nessie_help(__attribute__((unused)) char **argv, __attribute__((unused)) int argc) {
     printf("ne[sh]ie – the absurdly stupid shell\n\n");
-    printf("Type a command and press enter.\n");
+    printf("Type a command and press enter,\n");
+    printf("or run \033[1mnessie -c 'command'\033[m.\n\n");
     printf("For more information, see \033[1mman nessie\033[0m.\n");
     return 0;
 }
