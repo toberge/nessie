@@ -22,6 +22,8 @@ Nessie depends on nothing but the tools required to build it – `make` and a C 
 
 Running the tests requires `bats` and/or `clang`.
 
+Producing the man page requires `pandoc` – this is only done in the `make install` target.
+
 ## Installation
 
 Run `make install` or `make install-local`. Alternatively, simply run `make` and put the binary wherever you want.
