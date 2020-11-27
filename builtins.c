@@ -5,11 +5,16 @@
 /**
  * cd builtin - just a wrapper around chdir()
  *
- * @returns non-zero on failure, zero on success
+ * @return non-zero on failure, zero on success
  */
 int cd(char **argv, int argc) {
     if (argc == 2) {
-        return -chdir(argv[1]);
+        if (chdir(argv[1]) == -1) {
+            perror("cd");
+            return 1;
+        } else {
+            return 0;
+        }
     } else {
         printf("cd: Invalid number of arguments\n");
         return 1;
@@ -19,7 +24,7 @@ int cd(char **argv, int argc) {
 /**
  * exit builtin - exits nessie
  *
- * @returns NESSIE_EXIT_SUCCESS to indicate intent
+ * @return NESSIE_EXIT_SUCCESS to indicate intent
  */
 int nessie_exit(__attribute__((unused)) char **argv, __attribute__((unused)) int argc) {
     return NESSIE_EXIT_SUCCESS;
@@ -28,7 +33,7 @@ int nessie_exit(__attribute__((unused)) char **argv, __attribute__((unused)) int
 /**
  * help builtin - shows some helpful message
  *
- * @returns NESSIE_EXIT_SUCCESS to indicate intent
+ * @return NESSIE_EXIT_SUCCESS to indicate intent
  */
 int nessie_help(__attribute__((unused)) char **argv, __attribute__((unused)) int argc) {
     printf("ne[sh]ie – the absurdly stupid shell\n\n");
@@ -39,9 +44,27 @@ int nessie_help(__attribute__((unused)) char **argv, __attribute__((unused)) int
 }
 
 /**
+ * history builtin - displays the current command history
+ *
+ * If there is no history, nothing will be displayed.
+ *
+ * @return 0
+ */
+int nessie_history(__attribute__((unused)) char **argv, __attribute__((unused)) int argc) {
+    const char **history = history_get_all();
+    if (history == NULL)
+        return 0;
+    while (*history != NULL) {
+        printf("%s\n", *history);
+        history++;
+    }
+    return 0;
+}
+
+/**
  * true builtin - returns true
  *
- * @returns 0 to indicate success/truth
+ * @return 0 to indicate success/truth
  */
 int nessie_true(__attribute__((unused)) char **argv, __attribute__((unused)) int argc) {
     return 0;
@@ -50,7 +73,7 @@ int nessie_true(__attribute__((unused)) char **argv, __attribute__((unused)) int
 /**
  * false builtin - returns false
  *
- * @returns 1 to indicate failure/falsehood
+ * @return 1 to indicate failure/falsehood
  */
 int nessie_false(__attribute__((unused)) char **argv, __attribute__((unused)) int argc) {
     return 1;

@@ -14,7 +14,11 @@
 struct Option_st O = { 0 };
 
 /**
- * Display
+ * Display a colored prompt with current working directory
+ * and exit status of the last command, if it was non-zero
+ *
+ * @param status Exit status of last command
+ * @param cwd    Current working directory
  */
 void display_prompt(int status, char *cwd) {
     if (status)
@@ -25,7 +29,7 @@ void display_prompt(int status, char *cwd) {
 /**
  * Run nessie in non-interactive mode
  *
- * @returns exit code for the shell
+ * @return Exit code for the shell
  */
 int single_command_run(char *line) {
     int count, status;
@@ -49,7 +53,7 @@ int single_command_run(char *line) {
 /**
  * Run nessie in interactive mode
  *
- * @returns exit code for the shell
+ * @return Exit code for the shell
  */
 int interactive_run() {
     char **tokens;
@@ -59,6 +63,7 @@ int interactive_run() {
 
     int len = 0;
     char *line = NULL;
+    history_init();
 
     printf("Welcome to ne[sh]ie, the absurdly stupid shell!\n");
 
@@ -79,10 +84,12 @@ int interactive_run() {
         status = execute_syntax_tree(tree);
         free_ASTNode(tree);
         free_tokens(tokens, count);
-        free(line);
+        // Save history
+        history_save(line);
     }
 
     free(cwd_buffer);
+    history_free();
 
     switch (status) {
         case NESSIE_EXIT_SUCCESS:
@@ -103,7 +110,7 @@ int main(int argc, char **argv) {
     while (1) {
         int option_index;
         static struct option long_options[] = {
-            { "debug", no_argument, &O.debug, 'd' }, // currently does not work
+            { "debug", no_argument, &O.debug, 'd' },
             { "command", required_argument, 0, 'c' },
             { "help", no_argument, 0, 'h' },
             { 0, 0, 0, 0 }

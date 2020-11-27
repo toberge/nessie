@@ -10,6 +10,7 @@ static char* BUILTIN_NAMES[] = {
     "exit",
     "q",
     "help",
+    "history",
     "true",
     "false"
 };
@@ -19,6 +20,7 @@ static int (*BUILTINS[]) (char**, int) = {
     nessie_exit,
     nessie_exit,
     nessie_help,
+    nessie_history,
     nessie_true,
     nessie_false
 };
@@ -33,7 +35,9 @@ void printarr(char **arr, int len) {
     printf("'%s'\n", arr[len-1]);
 }
 
-// Call execvp() (or a builtin) with supplied arguments. Will never return.
+/**
+ * Call execvp() (or a builtin) with supplied arguments. Will never return.
+ */
 void child_exec(char **tokens, int argc) {
     // Handle builtins
     for (int i = 0; i < NUM_BUILTINS; i++) {
@@ -59,7 +63,11 @@ void child_exec(char **tokens, int argc) {
     exit(127);
 }
 
-// Wait for child process to finish
+/**
+ * Wait for child process to finish
+ *
+ * @return proper exit status
+ */
 int parent_wait(pid_t child_pid) {
     // In parent process, wait for child to finish
     int status;
@@ -72,6 +80,12 @@ int parent_wait(pid_t child_pid) {
 
 int pipe_start(ASTNode *node);
 
+/**
+ * Execute an entire syntax tree recursively
+ *
+ * @param node The root of the tree
+ * @return Exit status or special status
+ */
 int execute_syntax_tree(ASTNode *node) {
     switch(node->type) {
         case NESSIE_COMMAND:
@@ -113,6 +127,11 @@ int execute_syntax_tree(ASTNode *node) {
     }
 }
 
+/**
+ * End of a pipeline
+ *
+ * @return Exit status
+ */
 int pipe_end(ASTNode *node, int fd[2]) {
     int status = -1;
     // Parent will fork again
@@ -135,6 +154,12 @@ int pipe_end(ASTNode *node, int fd[2]) {
     return status;
 }
 
+/**
+ * Inner part of a pipeline, connects two pipes
+ * 
+ * @param old_fd File descriptor pair for the previous process
+ * @return Exit status
+ */
 int pipe_inner(ASTNode *node, int old_fd[2]) {
     int next_fd[2];
     // Create a *new* pipe - write to next_fd[1], read from next_fd[0]
@@ -169,6 +194,12 @@ int pipe_inner(ASTNode *node, int old_fd[2]) {
     return status;
 }
 
+/**
+ * Outer part of a pipeline, the one that starts it all
+ * 
+ * @param node A command node *with a next_node*
+ * @return Exit status
+ */
 int pipe_start(ASTNode *node) {
     if (node->contentlen < 1) return 0;
 
@@ -199,7 +230,11 @@ int pipe_start(ASTNode *node) {
     return status;
 }
 
-/* Forks and executes command */
+/**
+ * Forks and executes a command
+ * 
+ * @return Exit status
+ */
 int execute_command(char **tokens, int argc) {
     if (argc < 1) return 0;
 
@@ -212,14 +247,19 @@ int execute_command(char **tokens, int argc) {
         // Is child, execute command!
         child_exec(tokens, argc);
     } else {
-        // negative pid -> error forking
-        fprintf(stderr, "Error while forking!\n");
-        status = -1;
+        die("fork");
     }
 
     return status;
 }
 
+/**
+ * Determines if the command is a builtin, a directory
+ * or an actual command, and executes it.
+ * Only called if the command is not piped to anything.
+ * 
+ * @return Exit status or special status
+ */
 int launch_command(char **tokens, int count) {
     if (count <= 0 || tokens == NULL) {
         return 0;

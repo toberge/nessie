@@ -7,6 +7,7 @@
 // lexer constants
 #define NESSIE_TOKEN_LENGTH 64
 #define NESSIE_TOKEN_ARRAY_LENGTH 32
+#define NESSIE_HISTORY_LENGTH 256
 
 // additional status codes
 #define NESSIE_EXIT_SUCCESS -3
@@ -39,6 +40,7 @@ int nessie_exit(char **argv, int argc);
 int nessie_help(char **argv, int argc);
 int nessie_true(char **argv, int argc);
 int nessie_false(char **argv, int argc);
+int nessie_history(char **argv, int argc);
 
 // }}}
 
@@ -82,4 +84,12 @@ int pipe_commands(char **argv1, int argc1, char **argv2, int argc2);
 
 // }}}
 
+// {{{ History
+
+void history_init();
+void history_free();
+void history_save(const char *line);
+const char **history_get_all();
+
+// }}}
 #endif

@@ -46,6 +46,12 @@
     [ "${#lines[@]}" -ne 0 ]
 }
 
+@test "history shows nothing when run non-interactively" {
+    run nessie -c "history"
+    [ "$status" -eq 0 ]
+    [ -z "$output" ]
+}
+
 # Piping
 
 @test "pipes output through a pair of commands" {
@@ -91,7 +97,7 @@
     [ "$output" = "correct" ]
 }
 
-# Misc
+# Parser behaviour
 
 @test "Every operator can be squished together with text" {
     run nessie -c "true&&true&&false&&true||echo correct|tr r l;false"
@@ -99,3 +105,9 @@
     [ "$output" = "collect" ]
 }
 
+@test "Operators inside a string are interpreted literally" {
+    run nessie -c "true && echo 'this || that is && fine; yes indeed'"
+    echo "$output"
+    [ "$status" -eq 0 ]
+    [ "$output" = "this || that is && fine; yes indeed" ]
+}
