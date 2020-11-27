@@ -16,7 +16,7 @@ Minimal shell written in C.
 + [x] Piping
 + [x] Multiple statements terminated by `;`
 + [x] Conditional execution with `&&` and `||`
-+ [ ] History (at least as builtin)
++ [x] History (as builtin)
 + [ ] Variables
 + [ ] Some keybinds (requires raw mode + rework of input code)
 
