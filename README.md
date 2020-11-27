@@ -1,5 +1,7 @@
 # Ne[sh]ie
 
+![Tests](https://github.com/toberge/nessie/workflows/Tests/badge.svg)
+
 _The absurdly stupid shell_
 
 Minimal shell written in C.
