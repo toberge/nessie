@@ -1,6 +1,7 @@
 # Ne[sh]ie
 
-![Tests](https://github.com/toberge/nessie/workflows/Tests/badge.svg)
+![Unit tests](https://github.com/toberge/nessie/workflows/Unit%20tests/badge.svg)
+![Fuzzer tests](https://github.com/toberge/nessie/workflows/Fuzzer%20tests/badge.svg)
 
 _The absurdly stupid shell_
 

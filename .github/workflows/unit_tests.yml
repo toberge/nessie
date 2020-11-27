@@ -1,4 +1,4 @@
-name: Tests
+name: Unit tests
 
 on: [push]
 
@@ -7,16 +7,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1
-      - name: Unit tests
+      - name: Run unit tests with Bats
         run: |
           sudo apt-get install bats
           sudo make install-ci
           make test
-
-  fuzzer_tests:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v1
-      - name: Fuzzer tests
-        run: |
-          make fuzz
