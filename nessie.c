@@ -1,10 +1,10 @@
 #include "nessie.h"
 #include <getopt.h>
 #include <stdio.h>
-#include <string.h>
 #include <stdlib.h>
-#include <unistd.h>
+#include <string.h>
 #include <sys/wait.h>
+#include <unistd.h>
 
 /*
  * Second attempt at writing a shell,
@@ -12,12 +12,6 @@
  */
 
 struct Option_st O = { 0 };
-
-// TODO: move this tiny function
-void die(char *msg) {
-    perror(msg);
-    exit(EXIT_FAILURE);
-}
 
 /**
  * Display
@@ -136,6 +130,7 @@ int main(int argc, char **argv) {
             case '?':
                 break;
             default:
+                fprintf(stderr, "Unknown option(s).");
                 abort();
         }
     }

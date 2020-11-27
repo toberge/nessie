@@ -16,6 +16,8 @@ ASTNode *parse_line(char **argv, int argc) {
 // Create and initialize an ASTNode struct
 ASTNode *create_ASTNode() {
     ASTNode *node = malloc(sizeof(ASTNode));
+    if (node == NULL)
+        die("malloc");
     node->type = 0;
     node->content = 0;
     node->contentlen = 0;

@@ -26,6 +26,12 @@ struct Option_st {
 
 extern struct Option_st O;
 
+// {{{ Utils
+
+void die(char *msg);
+
+// }}}
+
 // {{{ Builtins
 
 int cd(char **argv, int argc);

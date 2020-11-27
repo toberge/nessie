@@ -9,12 +9,12 @@ man: nessie.1
 nessie.1: man.md
 	pandoc man.md --standalone --to=man -o nessie.1
 
-nessie: nessie.c nessie.h lexer.c builtins.c parser.c executor.c
+nessie: nessie.c nessie.h lexer.c builtins.c parser.c executor.c util.c
 	$(CC) *.c -o nessie $(CFLAGS)
 
 fuzz: lexer.c tests/*.c
 	for test in tests/*.c; do\
-	    clang "$$test" lexer.c -o "$${test%.c}" \
+	    clang "$$test" lexer.c util.c -o "$${test%.c}" \
 	          $(CFLAGS) -fsanitize=address,fuzzer; \
 	    ./"$${test%.c}" -max_total_time=120 -detect_leaks=0 && \
 	    ./"$${test%.c}" -max_total_time=120; \

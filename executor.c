@@ -130,16 +130,17 @@ int pipe_end(ASTNode *node, int fd[2]) {
         close(fd[PIPE_READ]);
         child_exec(node->content, node->contentlen);
     } else {
-        fprintf(stderr, "Error while forking!\n");
-        status = -1;
+        die("fork");
     }
     return status;
 }
 
 int pipe_inner(ASTNode *node, int old_fd[2]) {
-    // Create a new pipe
     int next_fd[2];
-    pipe(next_fd);
+    // Create a *new* pipe - write to next_fd[1], read from next_fd[0]
+    if (pipe(next_fd) == -1)
+        die("pipe");
+
     int status = -1;
     // Parent will fork again
     int child_pid = fork();
@@ -163,8 +164,7 @@ int pipe_inner(ASTNode *node, int old_fd[2]) {
         close(next_fd[PIPE_WRITE]);
         child_exec(node->content, node->contentlen);
     } else {
-        fprintf(stderr, "Error while forking!\n");
-        status = -1;
+        die("fork");
     }
     return status;
 }
@@ -174,7 +174,10 @@ int pipe_start(ASTNode *node) {
 
     int status = -1;
     int fd[2];
-    pipe(fd); // create a pipe - write to fd[1], read from fd[0]
+    // create a pipe - write to fd[1], read from fd[0]
+    if (pipe(fd) == -1)
+        die("pipe");
+
 
     pid_t child_pid = fork();
 
@@ -190,8 +193,7 @@ int pipe_start(ASTNode *node) {
         close(fd[PIPE_WRITE]);
         child_exec(node->content, node->contentlen);
     } else {
-        fprintf(stderr, "Error while forking!\n");
-        status = -1;
+        die("fork");
     }
 
     return status;

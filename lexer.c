@@ -39,7 +39,11 @@ char **split_input(const char *input, int *num_tokens) {
     int i, n, c, state;
 
     char **tokens = malloc(NESSIE_TOKEN_ARRAY_LENGTH*sizeof(char*));
+    if (tokens == NULL)
+        die("malloc");
     tokens[0] = malloc(NESSIE_TOKEN_LENGTH*sizeof(char));
+    if (tokens[0] == NULL)
+        die("malloc");
     long arrlen = NESSIE_TOKEN_ARRAY_LENGTH;
     long toklen = NESSIE_TOKEN_LENGTH;
 
@@ -52,20 +56,30 @@ char **split_input(const char *input, int *num_tokens) {
         if (n+1 >= arrlen) {
             arrlen += arrlen / 3;
             tokens = realloc(tokens, arrlen);
+            if (!tokens)
+                die("realloc");
         }
         if (i+1 >= toklen) {
             toklen += toklen / 3;
             tokens[n] = realloc(tokens[n], toklen);
+            if (!tokens[n])
+                die("realloc");
         }
 
         // Crappy handling of operators
         if (state != IN_STRING && strchr(NESSIE_OPERATOR_CHARS, c) != NULL) {
             if (state == IN_WORD) {
                 tokens[n] = realloc(tokens[n], (i+2)*sizeof(char));
+                if (!tokens[n])
+                    die("realloc");
                 tokens[n++][i] = '\0';
                 tokens[n] = malloc(3*sizeof(char));
+                if (!tokens[n])
+                    die("malloc");
             } else {
                 tokens[n] = realloc(tokens[n], 3*sizeof(char));
+                if (!tokens[n])
+                    die("realloc");
             }
 
             tokens[n][0] = c;
@@ -75,11 +89,15 @@ char **split_input(const char *input, int *num_tokens) {
                 input++;
             } else {
                 tokens[n] = realloc(tokens[n], 2*sizeof(char));
+                if (!tokens[n])
+                    die("realloc");
                 tokens[n][1] = '\0';
             }
 
             // new token! TODO no code duplication
             tokens[++n] = malloc(NESSIE_TOKEN_LENGTH*sizeof(char));
+            if (!tokens[n])
+                die("malloc");
             toklen = NESSIE_TOKEN_LENGTH;
             state = OUTSIDE;
             i = 0;
@@ -100,9 +118,13 @@ char **split_input(const char *input, int *num_tokens) {
                 if (strchr(NESSIE_WHITESPACE_CHARS, c) != NULL) {
                     state = OUTSIDE;
                     tokens[n] = realloc(tokens[n], (i+2)*sizeof(char));
+                    if (!tokens[n])
+                        die("realloc");
                     tokens[n++][i] = '\0';
                     // new token! TODO no code duplication
                     tokens[n] = malloc(NESSIE_TOKEN_LENGTH*sizeof(char));
+                    if (!tokens[n])
+                        die("malloc");
                     toklen = NESSIE_TOKEN_LENGTH;
                     i = 0;
                 } else {
@@ -113,9 +135,13 @@ char **split_input(const char *input, int *num_tokens) {
                 if (c == quote) { // TODO: check if whitespace follows?
                     state = OUTSIDE;
                     tokens[n] = realloc(tokens[n], (i+2)*sizeof(char));
+                    if (!tokens[n])
+                        die("realloc");
                     tokens[n++][i] = '\0';
                     // new token! TODO no code duplication
                     tokens[n] = malloc(NESSIE_TOKEN_LENGTH*sizeof(char));
+                    if (!tokens[n])
+                        die("malloc");
                     toklen = NESSIE_TOKEN_LENGTH;
                     i = 0;
                 } else {
