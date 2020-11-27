@@ -105,9 +105,20 @@
     [ "$output" = "collect" ]
 }
 
+@test "Single-quoted strings exist" {
+    run nessie -c "echo 'this is inside single quotes'"
+    [ "$status" -eq 0 ]
+    [ "$output" = "this is inside single quotes" ]
+}
+
+@test "Double-quoted strings exist" {
+    run nessie -c 'echo "this is inside double quotes"'
+    [ "$status" -eq 0 ]
+    [ "$output" = "this is inside double quotes" ]
+}
+
 @test "Operators inside a string are interpreted literally" {
     run nessie -c "true && echo 'this || that is && fine; yes indeed'"
-    echo "$output"
     [ "$status" -eq 0 ]
     [ "$output" = "this || that is && fine; yes indeed" ]
 }
