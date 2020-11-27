@@ -10,7 +10,6 @@ Minimal shell written in C.
 + [x] `cd` with builtin or by typing a folder name
 + [x] Piping
 + [x] Multiple statements terminated by `;`
-  + Currently requires surrounding the semicolon with whitespace
 + [x] Conditional execution with `&&` and `||`
 + [ ] History (at least as builtin)
 + [ ] Variables

@@ -62,10 +62,17 @@
     [ "${lines[1]}" = "AAAA" ]
 }
 
+@test "pipes can be squished together" {
+    run nessie -c 'printf "aaaa\nbbbb\naaaa\n"|grep a|tr a A'
+    [ "$status" -eq 0 ]
+    [ "${lines[0]}" = "AAAA" ]
+    [ "${lines[1]}" = "AAAA" ]
+}
+
 # Statements and short-circuiting
 
 @test "handles multiple statements" {
-    run nessie -c "echo one ; echo two ; echo three"
+    run nessie -c "echo one; echo two; echo three"
     [ "$status" -eq 0 ]
     [ "${lines[0]}" = "one" ]
     [ "${lines[1]}" = "two" ]
@@ -73,7 +80,7 @@
 }
 
 @test "|| does not abort subsequent statements" {
-    run nessie -c "true || false ; echo correct"
+    run nessie -c "true || false; echo correct"
     [ "$status" -eq 0 ]
     [ "$output" = "correct" ]
 }
@@ -83,3 +90,12 @@
     [ "$status" -eq 0 ]
     [ "$output" = "correct" ]
 }
+
+# Misc
+
+@test "Every operator can be squished together with text" {
+    run nessie -c "true&&true&&false&&true||echo correct|tr r l;false"
+    [ "$status" -eq 1 ]
+    [ "$output" = "collect" ]
+}
+

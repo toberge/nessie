@@ -86,6 +86,7 @@ int interactive_run() {
         status = execute_syntax_tree(tree);
         free_ASTNode(tree);
         free_tokens(tokens, count);
+        free(line);
     }
 
     free(cwd_buffer);

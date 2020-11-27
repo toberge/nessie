@@ -16,6 +16,9 @@
 #define PIPE_WRITE 1
 #define PIPE_READ 0
 
+#define NESSIE_WHITESPACE_CHARS " \x9a\t\n"
+#define NESSIE_OPERATOR_CHARS "&|;"
+
 // struct for varous options
 struct Option_st {
     int debug;

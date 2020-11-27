@@ -7,11 +7,13 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 // Free all strings in given array
 void free_tokens(char **tokens, int len) {
-    for (int i = 0; i < len; i++)
+    for (int i = 0; i < len; i++) {
         free(tokens[i]);
+    }
     free(tokens);
 }
 
@@ -41,30 +43,61 @@ char **split_input(const char *input, int *num_tokens) {
     long arrlen = NESSIE_TOKEN_ARRAY_LENGTH;
     long toklen = NESSIE_TOKEN_LENGTH;
 
+    char quote = '"'; // quote type for this string
+
     i = 0, n = 0;
     state = OUTSIDE;
     while ((c = *input++) != '\0') {
         // Reallocate memory of array or string if full
-        if (n >= arrlen) {
+        if (n+1 >= arrlen) {
             arrlen += arrlen / 3;
             tokens = realloc(tokens, arrlen);
         }
-        if (i >= toklen) {
+        if (i+1 >= toklen) {
             toklen += toklen / 3;
             tokens[n] = realloc(tokens[n], toklen);
         }
 
+        // Crappy handling of operators
+        if (state != IN_STRING && strchr(NESSIE_OPERATOR_CHARS, c) != NULL) {
+            if (state == IN_WORD) {
+                tokens[n] = realloc(tokens[n], (i+2)*sizeof(char));
+                tokens[n++][i] = '\0';
+                tokens[n] = malloc(3*sizeof(char));
+            } else {
+                tokens[n] = realloc(tokens[n], 3*sizeof(char));
+            }
+
+            tokens[n][0] = c;
+            if (*input == c) {
+                tokens[n][1] = c;
+                tokens[n][2] = '\0';
+                input++;
+            } else {
+                tokens[n] = realloc(tokens[n], 2*sizeof(char));
+                tokens[n][1] = '\0';
+            }
+
+            // new token! TODO no code duplication
+            tokens[++n] = malloc(NESSIE_TOKEN_LENGTH*sizeof(char));
+            toklen = NESSIE_TOKEN_LENGTH;
+            state = OUTSIDE;
+            i = 0;
+            continue;
+        }
+
         switch (state) {
             case OUTSIDE:
-                if (c == '"') {
+                if (c == '"' || c == '\'') {
                     state = IN_STRING;
-                } else if (c != ' ') {
+                    quote = c;
+                } else if (strchr(NESSIE_WHITESPACE_CHARS, c) == NULL) {
                     state = IN_WORD;
                     tokens[n][i++] = c;
                 }
                 break;
             case IN_WORD:
-                if (c == ' ') {
+                if (strchr(NESSIE_WHITESPACE_CHARS, c) != NULL) {
                     state = OUTSIDE;
                     tokens[n] = realloc(tokens[n], (i+2)*sizeof(char));
                     tokens[n++][i] = '\0';
@@ -77,7 +110,7 @@ char **split_input(const char *input, int *num_tokens) {
                 }
                 break;
             case IN_STRING:
-                if (c == '"') { // TODO: check if whitespace follows?
+                if (c == quote) { // TODO: check if whitespace follows?
                     state = OUTSIDE;
                     tokens[n] = realloc(tokens[n], (i+2)*sizeof(char));
                     tokens[n++][i] = '\0';
@@ -94,7 +127,7 @@ char **split_input(const char *input, int *num_tokens) {
         }
     }
     if (state == IN_STRING) {
-        fprintf(stderr, "No matching \" found!\n");
+        fprintf(stderr, "No matching %c found!\n", quote);
         // Free token array
         *num_tokens = 0;
         free_tokens(tokens, n+1);
@@ -108,9 +141,9 @@ char **split_input(const char *input, int *num_tokens) {
         free(tokens);
         *num_tokens = 0;
         return NULL;
-    } else if (!i) { // last tokens has size 0
+    } else if (!i) { // last token has size 0
         free(tokens[n--]);
     }
     *num_tokens = n;
-    return realloc(tokens, n*sizeof(char*));
+    return tokens;
 }
