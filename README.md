@@ -7,6 +7,8 @@ _The absurdly stupid shell_
 
 Minimal shell written in C.
 
+![Demonstration](res/demo.png)
+
 ## Features
 
 + [x] Fork and execute commands

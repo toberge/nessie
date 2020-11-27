@@ -18,9 +18,8 @@ struct Option_st O = { 0 };
  */
 void display_prompt(int status, char *cwd) {
     if (status)
-        printf("\033[31;1m[%i]\033[0m \033[32m%s\033[0m \033[34m$\033[0m ", status, cwd);
-    else
-        printf("\033[32m%s\033[0m \033[34m$\033[0m ", cwd);
+        printf("\033[31;1m[%i]\033[0m ", status);
+    printf("\033[32m%s\033[0m \033[34m$\033[0m ", cwd);
 }
 
 /**
