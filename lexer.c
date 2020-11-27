@@ -167,9 +167,7 @@ char **split_input(const char *input, int *num_tokens) {
         free(tokens);
         *num_tokens = 0;
         return NULL;
-    } else if (!i) { // last token has size 0
-        free(tokens[n--]);
-    }
+    } // TODO: Last token might be empty, is that an issue?
     *num_tokens = n;
     return tokens;
 }
