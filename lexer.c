@@ -9,7 +9,10 @@
 #include <stdio.h>
 #include <string.h>
 
-// Free all strings in given array
+/**
+ * Free all strings in given array
+ * (used once for debugging)
+ */
 void free_tokens(char **tokens, int len) {
     for (int i = 0; i < len; i++) {
         free(tokens[i]);
@@ -17,7 +20,11 @@ void free_tokens(char **tokens, int len) {
     free(tokens);
 }
 
-/* Reads a line and stores its length in len */
+/*
+ * Reads a line and stores its length in len 
+ * @param len Becomes the length of the line
+ * @return The line that was read, or NULL if EOF was reached or an error occured
+ */
 char *read_line(int *len) {
     char *line = NULL;
     size_t linelen;
@@ -32,10 +39,43 @@ char *read_line(int *len) {
     return line;
 }
 
+/**
+ * Reallocates the current token and terminates it,
+ * then increments the token array index
+ * (part of split_input)
+ */
+void end_token(char **tokens, int *n, int *i) {
+    // Resize old token
+    tokens[*n] = realloc(tokens[*n], (*i+2)*sizeof(char));
+    if (!tokens[*n])
+        die("realloc");
+    tokens[(*n)++][*i] = '\0';
+}
+
+/**
+ * Allocates a new token and resets char index
+ * (part of split_input)
+ */
+void new_token(char **tokens, int *n, int *i, long *toklen) {
+    // Create new token
+    tokens[*n] = malloc(NESSIE_TOKEN_LENGTH*sizeof(char));
+    if (!tokens[*n])
+        die("malloc");
+    *toklen = NESSIE_TOKEN_LENGTH;
+    *i = 0;
+}
+
 enum { OUTSIDE, IN_WORD, IN_STRING };
 
+/**
+ * Splits input into tokens based on several rules
+ * Operators are handled regardless of whether this is inside a word or not
+ *
+ * @param input      Intput line to split
+ * @param num_tokens Set as the length of the token array
+ * @return           Array of tokens
+ */
 char **split_input(const char *input, int *num_tokens) {
-    // note: the len parameter will be useful for validation later.
     int i, n, c, state;
 
     char **tokens = malloc(NESSIE_TOKEN_ARRAY_LENGTH*sizeof(char*));
@@ -47,10 +87,11 @@ char **split_input(const char *input, int *num_tokens) {
     long arrlen = NESSIE_TOKEN_ARRAY_LENGTH;
     long toklen = NESSIE_TOKEN_LENGTH;
 
-    char quote = '"'; // quote type for this string
-
     i = 0, n = 0;
     state = OUTSIDE;
+    char quote = '"'; // quote type for the curent string
+                      // checked if state == IN_STRING
+
     while ((c = *input++) != '\0') {
         // Reallocate memory of array or string if full
         if (n+1 >= arrlen) {
@@ -66,22 +107,22 @@ char **split_input(const char *input, int *num_tokens) {
                 die("realloc");
         }
 
-        // Crappy handling of operators
+        // Operators are only handled if they appear outside strings
         if (state != IN_STRING && strchr(NESSIE_OPERATOR_CHARS, c) != NULL) {
             if (state == IN_WORD) {
-                tokens[n] = realloc(tokens[n], (i+2)*sizeof(char));
-                if (!tokens[n])
-                    die("realloc");
-                tokens[n++][i] = '\0';
+                // Finish current token, allocate new token
+                end_token(tokens, &n, &i);
                 tokens[n] = malloc(3*sizeof(char));
                 if (!tokens[n])
                     die("malloc");
             } else {
+                // Outside a word, realloc to max size
                 tokens[n] = realloc(tokens[n], 3*sizeof(char));
                 if (!tokens[n])
                     die("realloc");
             }
 
+            // Capture the 1-2 instances of the operator
             tokens[n][0] = c;
             if (*input == c) {
                 tokens[n][1] = c;
@@ -94,13 +135,10 @@ char **split_input(const char *input, int *num_tokens) {
                 tokens[n][1] = '\0';
             }
 
-            // new token! TODO no code duplication
-            tokens[++n] = malloc(NESSIE_TOKEN_LENGTH*sizeof(char));
-            if (!tokens[n])
-                die("malloc");
-            toklen = NESSIE_TOKEN_LENGTH;
+            // Create a new token and continue
             state = OUTSIDE;
-            i = 0;
+            n++;
+            new_token(tokens, &n, &i, &toklen);
             continue;
         }
 
@@ -117,16 +155,8 @@ char **split_input(const char *input, int *num_tokens) {
             case IN_WORD:
                 if (strchr(NESSIE_WHITESPACE_CHARS, c) != NULL) {
                     state = OUTSIDE;
-                    tokens[n] = realloc(tokens[n], (i+2)*sizeof(char));
-                    if (!tokens[n])
-                        die("realloc");
-                    tokens[n++][i] = '\0';
-                    // new token! TODO no code duplication
-                    tokens[n] = malloc(NESSIE_TOKEN_LENGTH*sizeof(char));
-                    if (!tokens[n])
-                        die("malloc");
-                    toklen = NESSIE_TOKEN_LENGTH;
-                    i = 0;
+                    end_token(tokens, &n, &i);
+                    new_token(tokens, &n, &i, &toklen);
                 } else {
                     tokens[n][i++] = c;
                 }
@@ -134,16 +164,8 @@ char **split_input(const char *input, int *num_tokens) {
             case IN_STRING:
                 if (c == quote) { // TODO: check if whitespace follows?
                     state = OUTSIDE;
-                    tokens[n] = realloc(tokens[n], (i+2)*sizeof(char));
-                    if (!tokens[n])
-                        die("realloc");
-                    tokens[n++][i] = '\0';
-                    // new token! TODO no code duplication
-                    tokens[n] = malloc(NESSIE_TOKEN_LENGTH*sizeof(char));
-                    if (!tokens[n])
-                        die("malloc");
-                    toklen = NESSIE_TOKEN_LENGTH;
-                    i = 0;
+                    end_token(tokens, &n, &i);
+                    new_token(tokens, &n, &i, &toklen);
                 } else {
                     tokens[n][i++] = c;
                 }
@@ -152,17 +174,18 @@ char **split_input(const char *input, int *num_tokens) {
                 fprintf(stderr, "Invalid state\n");
         }
     }
-    if (state == IN_STRING) {
+
+    if (state == IN_STRING) { // still in a string
         fprintf(stderr, "No matching %c found!\n", quote);
         // Free token array
         *num_tokens = 0;
         free_tokens(tokens, n+1);
         return NULL;
     }
-    if (i) {
+    if (i) { // Terminate the current token
         tokens[n][i] = '\0';
         n++;
-    } else if (!n) { // no tokens acquired
+    } else if (!n) { // No tokens acquired
         free(tokens[0]);
         free(tokens);
         *num_tokens = 0;
