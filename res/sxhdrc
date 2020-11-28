@@ -1,0 +1,23 @@
+# Start with "sxhkd -c sxhkdrc"
+# Stand in /tmp/demo with a subfolder "here"
+
+1
+    sleep 0.1 && xdotool type --delay 40 "ls | wc -l"
+
+2
+    sleep 0.1 && xdotool type --delay 40 "cd here"
+
+3
+    sleep 0.1 && xdotool type --delay 40 "true && false || true && false"
+
+4
+    sleep 0.1 && xdotool type --delay 40 "thiscommanddoesnotexist"
+
+5
+    sleep 0.1 && xdotool type --delay 40 "../"
+
+6
+    sleep 0.1 && xdotool type --delay 40 "history"
+
+7
+    sleep 0.1 && xdotool type --delay 40 "exit"
