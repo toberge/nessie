@@ -5,7 +5,7 @@
 /**
  * cd builtin - just a wrapper around chdir()
  *
- * @return non-zero on failure, zero on success
+ * @return nonzero on failure, zero on success
  */
 int cd(char **argv, int argc) {
     if (argc == 2) {

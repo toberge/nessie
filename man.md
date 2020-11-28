@@ -27,16 +27,29 @@ ne[sh]ie – the absurdly stupid shell
 
 # SYNTAX
 
-TODO: Place the grammar here
+Nessie's syntax should be familiar to anyone with some experience using standard UNIX shells. It is meant to follow a tiny subset of Bourne Shell syntax.
 
-Command
-:    TODO
+The grammar can be summarized as follows:
 
-Pipeline
-:    TODO
+```
+LINE      := STATEMENT [; STATEMENT]*
+STATEMENT := COMMAND
+           | COMMAND && STATEMENT
+           | COMMAND || STATEMENT
+COMMAND   := PROG [ARG]* [| COMMAND]*
+PROG, ARG := WORD
+           | "WORD [WORD]*"
+WORD      := <just continuous text>
+```
 
-Short-circuiting
-:    TODO
+**Command**
+:    An exectuable file in your PATH, or a builtin. Takes some arguments and/or input, does whatever it is supposed to and returns an exit code.
+
+**Pipeline**
+:    The output of one command can be piped into another – that is, whatever the command would print if you ran it by itself, will become the input to the command after the **|** sign.
+
+**Short-circuiting**
+:    Nessie supports conditional execution, also known as short-circuiting, with the **&&** and **||** operators, which correspond to logical **AND** and **OR**. A command that exits with status code 0, triggers the next **&&**. A command that exits with a nonzero status code, triggers the next **||**.
 
 # EXAMPLES
 

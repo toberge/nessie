@@ -15,7 +15,7 @@ struct Option_st O = { 0 };
 
 /**
  * Display a colored prompt with current working directory
- * and exit status of the last command, if it was non-zero
+ * and exit status of the last command, if it was nonzero
  *
  * @param status Exit status of last command
  * @param cwd    Current working directory

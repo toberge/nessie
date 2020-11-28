@@ -38,6 +38,15 @@ You should now be able to execute `nessie` as a regular command, or run the bina
 
 Run unit tests with `make test` or fuzzer tests with `make fuzz`.
 
+## Usage
+
+Start an interactive session by simply running `nessie`.
+If you are stuck, try running `help`, `man nessie` or `man <some other command>`.
+
+Run a single command with `nessie -c "some command"`.
+
+See the [manual page](man.md) for a more thorough explanation of Nessie's functionality.
+
 ## Grammar
 
 Nessie's grammar is pretty minimal for the time being
