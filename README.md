@@ -5,7 +5,7 @@
 
 _The absurdly stupid shell_
 
-Minimal shell written in C.
+Minimal shell written in C as a hobby project.
 
 ![Demo session](res/demo.svg)
 
