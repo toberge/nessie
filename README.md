@@ -7,7 +7,7 @@ _The absurdly stupid shell_
 
 Minimal shell written in C.
 
-![Demonstration](res/demo.png)
+![Demo session](res/demo.svg)
 
 ## Features
 
