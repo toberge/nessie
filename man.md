@@ -12,9 +12,12 @@ ne[sh]ie – the absurdly stupid shell
 
 # DESCRIPTION
 
-**nessie** is a simple Linux shell
+**nessie** is a simple Linux shell developed as a hobby project. It is not intended to replace well-known, fully-featured shells like **bash** in any way. That being said, it does have enough functionality to be somewhat useful.
 
 # OPTIONS
+
+*FILE*
+:    Script file that Nessie should execute. Overriden by **-c**.
 
 **-h**, **-\-help**
 :   Display a friendly help message.
@@ -32,7 +35,7 @@ Nessie's syntax should be familiar to anyone with some experience using standard
 The grammar can be summarized as follows:
 
 ```
-LINE      := STATEMENT [; STATEMENT]*
+LINE      := STATEMENT [; STATEMENT]* [# COMMENT]
 STATEMENT := COMMAND
            | COMMAND && STATEMENT
            | COMMAND || STATEMENT
@@ -40,6 +43,7 @@ COMMAND   := PROG [ARG]* [| COMMAND]*
 PROG, ARG := WORD
            | "WORD [WORD]*"
 WORD      := <just continuous text>
+COMMENT   := <any text following a #>
 ```
 
 **Command**
@@ -51,6 +55,9 @@ WORD      := <just continuous text>
 **Short-circuiting**
 :    Nessie supports conditional execution, also known as short-circuiting, with the **&&** and **||** operators, which correspond to logical **AND** and **OR**. A command that exits with status code 0, triggers the next **&&**. A command that exits with a nonzero status code, triggers the next **||**.
 
+**Comment**
+:    Anything that folows a **#** that is **not** within a string, is ignored. This is typically used to add informational text to scripts.
+
 # EXAMPLES
 
 1. Execute a shell command from a string:
@@ -60,3 +67,11 @@ WORD      := <just continuous text>
 2. Start an interactive session
 
    **nessie**
+
+3. Run a script file
+
+   **nessie script.sh**
+
+3. Run a script/command from standard input
+
+   **echo "echo something" | nessie**

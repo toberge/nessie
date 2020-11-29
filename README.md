@@ -17,6 +17,8 @@ Minimal shell written in C as a hobby project.
 + [x] Multiple statements terminated by `;`
 + [x] Conditional execution with `&&` and `||`
 + [x] History (as builtin)
++ [x] Comments
++ [x] Script files (including stdin)
 + [ ] Variables
 + [ ] Some keybinds (requires raw mode + rework of input code)
 
@@ -45,14 +47,16 @@ If you are stuck, try running `help`, `man nessie` or `man <some other command>`
 
 Run a single command with `nessie -c "some command"`.
 
+Execute a script file with `nessie script.sh`. One can also pipe or otherwise redirect a list of commands to `nessie`, like `echo "some command" | nessie`.
+
 See the [manual page](man.md) for a more thorough explanation of Nessie's functionality.
 
 ## Grammar
 
-Nessie's grammar is pretty minimal for the time being
+Nessie's grammar is pretty minimal for the time being.
 
 ```
-LINE      := STATEMENT [; STATEMENT]*
+LINE      := STATEMENT [; STATEMENT]* [# COMMENT]
 STATEMENT := COMMAND
            | COMMAND && STATEMENT
            | COMMAND || STATEMENT
@@ -60,6 +64,7 @@ COMMAND   := PROG [ARG]* [| COMMAND]*
 PROG, ARG := WORD
            | "WORD [WORD]*"
 WORD      := <just continuous text>
+COMMENT   := <any text following a #>
 ```
 
 ## Resources used

@@ -12,12 +12,33 @@
 # Options
 
 @test "--help shows some information" {
-    run nessie -c "nessie --help"
+    run nessie --help
     [ "$status" -eq 0 ]
     [ "${#lines[@]}" -ne 0 ]
-    run nessie -c "nessie -h"
+    run nessie -h
     [ "$status" -eq 0 ]
     [ "${#lines[@]}" -ne 0 ]
+}
+
+# Modes
+
+@test "nessie can read stdin" {
+    # Piping with the run command does not work
+    # (Bats is treating the run command _itself_ as part of the pipe)
+    run sh -c "echo \"echo it just works # y'know\" | nessie"
+    [ "$status" -eq 0 ]
+    [ "$output" = "it just works" ]
+}
+
+@test "nessie can read script files" {
+    cat <<-EOF > /tmp/test.sh
+	#!/usr/bin/env nessie
+
+	echo it just works # and does not print this
+	EOF
+    run nessie /tmp/test.sh
+    [ "$status" -eq 0 ]
+    [ "$output" = "it just works" ]
 }
 
 # Builtins
@@ -121,4 +142,19 @@
     run nessie -c "true && echo 'this || that is && fine; yes indeed'"
     [ "$status" -eq 0 ]
     [ "$output" = "this || that is && fine; yes indeed" ]
+}
+
+@test "Comments are usually skipped" {
+    run nessie -c "echo this is # all well and good"
+    [ "$status" -eq 0 ]
+    [ "$output" = "this is" ]
+}
+
+run nessie -c "echo '#hashtag'"
+@test "Comments are not skipped if they're inside a string" {
+    [ "$status" -eq 0 ]
+    [ "$output" = "#hashtag" ]
+    run nessie -c 'echo "#hashtag"'
+    [ "$status" -eq 0 ]
+    [ "$output" = "#hashtag" ]
 }

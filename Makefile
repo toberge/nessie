@@ -32,8 +32,8 @@ debug: nessie
 install: nessie nessie.1
 	cp -f nessie /usr/local/bin
 	mkdir -p /usr/local/man/man1 # (man1 might not be present)
-	cp nessie.1 /usr/local/man/man1/nessie.1
-	gzip /usr/local/man/man1/nessie.1
+	cp -f nessie.1 /usr/local/man/man1/nessie.1
+	gzip -f /usr/local/man/man1/nessie.1
 
 install-local: nessie
 	cp -f nessie ~/.local/bin

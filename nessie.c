@@ -51,6 +51,35 @@ int single_command_run(char *line) {
 }
 
 /**
+ * Run a script file
+ *
+ * @return Exit code for the shell
+ */
+int script_run(FILE *file) {
+    int len, status = NESSIE_EXIT_SUCCESS;
+    char *line = read_line(&len, file);
+    while (line != NULL) {
+        status = single_command_run(line);
+        if (status < 0) // if exit was called, exit.
+            return status;
+        line = read_line(&len, file);
+    }
+    return status;
+}
+
+/**
+ * Wrapper around script_run for actual files
+ *
+ * @return Exit code for the shell
+ */
+int file_run(char *filename) {
+    FILE *file = fopen(filename, "r");
+    int status = script_run(file);
+    fclose(file);
+    return status;
+}
+
+/**
  * Run nessie in interactive mode
  *
  * @return Exit code for the shell
@@ -71,7 +100,7 @@ int interactive_run() {
         // Display prompt
         display_prompt(status, getcwd(cwd_buffer, (size_t)PATH_SIZE));
 
-        line = read_line(&len);
+        line = read_line(&len, stdin);
         if (!line) {
             // simply exit on EOF
             status = NESSIE_EXIT_SUCCESS;
@@ -144,9 +173,9 @@ int main(int argc, char **argv) {
     if (command != NULL) {
         return single_command_run(command);
     } else if (optind < argc) {
-        fprintf(stderr, "Support for scripts is not implemented yet\n");
-        return 1;
-        /* return file_run(argv[optind]); */
+        return file_run(argv[optind]);
+    } else if (!isatty(STDIN_FILENO)) {
+        return script_run(stdin);
     } else {
         return interactive_run();
     }

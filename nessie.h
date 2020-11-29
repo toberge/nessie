@@ -1,6 +1,8 @@
 #ifndef NESSIE_HEADER
 #define NESSIE_HEADER
 
+#include <stdio.h> // for FILE
+
 // for cwd-fetching
 #define PATH_SIZE pathconf(".", _PC_PATH_MAX)
 
@@ -46,7 +48,7 @@ int nessie_history(char **argv, int argc);
 
 // {{{ Lexer
 
-char *read_line(int *len);
+char *read_line(int *len, FILE *file);
 char **split_input(const char *input, int *num_tokens);
 void free_tokens(char **tokens, int len);
 

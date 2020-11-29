@@ -1,9 +1,9 @@
-#include "nessie.h"
-
 // enabling use of getline()
 #define _DEFAULT_SOURCE
 #define _BSD_SOURCE
 #define _GNU_SOURCE
+
+#include "nessie.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -25,11 +25,11 @@ void free_tokens(char **tokens, int len) {
  * @param len Becomes the length of the line
  * @return The line that was read, or NULL if EOF was reached or an error occured
  */
-char *read_line(int *len) {
+char *read_line(int *len, FILE *file) {
     char *line = NULL;
     size_t linelen;
     ssize_t charsread;
-    if ((charsread = getline(&line, &linelen, stdin)) == -1) {
+    if ((charsread = getline(&line, &linelen, file)) == -1) {
         free(line); // as the manual says, it must be freed.
         return NULL; // indicate that getline failed (or reached EOF)
     } else if (charsread > 0 && line[charsread - 1] == '\n') {
@@ -106,6 +106,10 @@ char **split_input(const char *input, int *num_tokens) {
             if (!tokens[n])
                 die("realloc");
         }
+
+        // If a comment is reached, skip the rest of the line!
+        if (state != IN_STRING && c == '#')
+            break;
 
         // Operators are only handled if they appear outside strings
         if (state != IN_STRING && strchr(NESSIE_OPERATOR_CHARS, c) != NULL) {
