@@ -161,15 +161,20 @@ char **split_input(const char *input, int *num_tokens) {
                     state = OUTSIDE;
                     end_token(tokens, &n, &i);
                     new_token(tokens, &n, &i, &toklen);
+                } else if (c == '"' || c == '\'') {
+                    state = IN_STRING; // we've started a string inside a word
+                    quote = c;
                 } else {
                     tokens[n][i++] = c;
                 }
                 break;
             case IN_STRING:
-                if (c == quote) { // TODO: check if whitespace follows?
-                    state = OUTSIDE;
+                if (c == quote && strchr(NESSIE_WHITESPACE_CHARS, c) != NULL) {
+                    state = OUTSIDE; // end of token if whitespace follows
                     end_token(tokens, &n, &i);
                     new_token(tokens, &n, &i, &toklen);
+                } else if (c == quote) {
+                    state = IN_WORD; // continue capturing word if not
                 } else {
                     tokens[n][i++] = c;
                 }

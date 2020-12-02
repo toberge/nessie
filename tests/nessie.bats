@@ -138,6 +138,21 @@
     [ "$output" = "this is inside double quotes" ]
 }
 
+@test "Strings are properly merged with words if they are adjacent to them" {
+    run nessie -c 'echo does" this work or "what'
+    [ "$status" -eq 0 ]
+    [ "$output" = "does this work or what" ]
+    run nessie -c 'echo cat" in a hat"'
+    [ "$status" -eq 0 ]
+    [ "$output" = "cat in a hat" ]
+    run nessie -c 'echo "cat in a "hat'
+    [ "$status" -eq 0 ]
+    [ "$output" = "cat in a hat" ]
+    run nessie -c 'echo what"ev"er'
+    [ "$status" -eq 0 ]
+    [ "$output" = "whatever" ]
+}
+
 @test "Operators inside a string are interpreted literally" {
     run nessie -c "true && echo 'this || that is && fine; yes indeed'"
     [ "$status" -eq 0 ]
@@ -150,8 +165,8 @@
     [ "$output" = "this is" ]
 }
 
-run nessie -c "echo '#hashtag'"
 @test "Comments are not skipped if they're inside a string" {
+    run nessie -c "echo '#hashtag'"
     [ "$status" -eq 0 ]
     [ "$output" = "#hashtag" ]
     run nessie -c 'echo "#hashtag"'
