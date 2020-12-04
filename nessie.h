@@ -7,6 +7,7 @@
 #define PATH_SIZE pathconf(".", _PC_PATH_MAX)
 
 // lexer constants
+#define NESSIE_LINE_LENGTH 256
 #define NESSIE_TOKEN_LENGTH 64
 #define NESSIE_TOKEN_ARRAY_LENGTH 32
 #define NESSIE_HISTORY_LENGTH 256
@@ -15,12 +16,16 @@
 #define NESSIE_EXIT_SUCCESS -3
 #define NESSIE_EXIT_FAILURE -4
 
+// semantic exit codes
+#define EXIT_SYNTAX_ERROR 2
+
 // alias for indexing fd pair from pipe()
 #define PIPE_WRITE 1
 #define PIPE_READ 0
 
 #define NESSIE_WHITESPACE_CHARS " \x9a\t\n"
 #define NESSIE_OPERATOR_CHARS "&|;"
+#define NESSIE_VARIABLE_CHARS "_ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
 
 // struct for varous options
 struct Option_st {
@@ -31,13 +36,16 @@ extern struct Option_st O;
 
 // {{{ Utils
 
+int min(int a, int b);
+int max(int a, int b);
 void die(char *msg);
 
 // }}}
 
 // {{{ Builtins
 
-int cd(char **argv, int argc);
+int nessie_cd(char **argv, int argc);
+int nessie_setenv(char **argv, int argc);
 int nessie_exit(char **argv, int argc);
 int nessie_help(char **argv, int argc);
 int nessie_true(char **argv, int argc);
@@ -48,6 +56,7 @@ int nessie_history(char **argv, int argc);
 
 // {{{ Lexer
 
+char *expand_variables(char *line, int len); // TODO remove
 char *read_line(int *len, FILE *file);
 char **split_input(const char *input, int *num_tokens);
 void free_tokens(char **tokens, int len);
@@ -94,4 +103,5 @@ void history_save(const char *line);
 const char **history_get_all();
 
 // }}}
+
 #endif

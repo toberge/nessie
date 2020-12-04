@@ -1,13 +1,15 @@
+#define _POSIX_C_SOURCE 200112L // for setenv
 #include "nessie.h"
 #include <stdio.h>
 #include <unistd.h>
+#include <stdlib.h>
 
 /**
  * cd builtin - just a wrapper around chdir()
  *
  * @return nonzero on failure, zero on success
  */
-int cd(char **argv, int argc) {
+int nessie_cd(char **argv, int argc) {
     if (argc == 2) {
         if (chdir(argv[1]) == -1) {
             perror("cd");
@@ -17,6 +19,25 @@ int cd(char **argv, int argc) {
         }
     } else {
         printf("cd: Invalid number of arguments\n");
+        return 1;
+    }
+}
+
+/**
+ * variable builtin - sets a variable to a value with setenv()
+ *
+ * @return nonzero on failure, zero on success
+ */
+int nessie_setenv(char **argv, int argc) {
+    if (argc == 3) {
+        if (setenv(argv[1], argv[2], 1) == -1) {
+            perror("setenv");
+            return 1;
+        } else {
+            return 0;
+        }
+    } else {
+        printf("%s: Invalid number of arguments\n", argv[0]);
         return 1;
     }
 }

@@ -27,17 +27,32 @@ void display_prompt(int status, char *cwd) {
 }
 
 /**
+ * Process and execute a command
+ *
+ * @return exit status of command
+ */
+int parse_and_run_command(char *line, int len) {
+        int count, status;
+        // Insert variables
+        line = expand_variables(line, len);
+        if (!line) return EXIT_SYNTAX_ERROR; // syntax error
+        // Read and split input
+        char **tokens = split_input(line, &count);
+        // Parse and execute
+        ASTNode *tree = parse_line(tokens, count);
+        status = execute_syntax_tree(tree);
+        free_ASTNode(tree);
+        free_tokens(tokens, count);
+        return status;
+}
+
+/**
  * Run nessie in non-interactive mode
  *
  * @return Exit code for the shell
  */
-int single_command_run(char *line) {
-    int count, status;
-    char **tokens = split_input(line, &count);
-    ASTNode *tree = parse_line(tokens, count);
-    status = execute_syntax_tree(tree);
-    free_ASTNode(tree);
-    free_tokens(tokens, count);
+int single_command_run(char *line, int len) {
+    int status = parse_and_run_command(line, len);
 
     // Just in case some negative status appears
     switch (status) {
@@ -59,7 +74,7 @@ int script_run(FILE *file) {
     int len, status = NESSIE_EXIT_SUCCESS;
     char *line = read_line(&len, file);
     while (line != NULL) {
-        status = single_command_run(line);
+        status = single_command_run(line, len);
         if (status < 0) // if exit was called, exit.
             return status;
         line = read_line(&len, file);
@@ -85,13 +100,11 @@ int file_run(char *filename) {
  * @return Exit code for the shell
  */
 int interactive_run() {
-    char **tokens;
-    int count, status = 0;
-
     char *cwd_buffer = (char*) malloc((size_t)PATH_SIZE);
 
     int len = 0;
     char *line = NULL;
+    int status = 0;
     history_init();
 
     printf("Welcome to ne[sh]ie, the absurdly stupid shell!\n");
@@ -100,19 +113,16 @@ int interactive_run() {
         // Display prompt
         display_prompt(status, getcwd(cwd_buffer, (size_t)PATH_SIZE));
 
+
         line = read_line(&len, stdin);
         if (!line) {
-            // simply exit on EOF
+            // simply exit on EOF, but print a newline first!
+            printf("\n");
             status = NESSIE_EXIT_SUCCESS;
             break;
         }
-        // Read and split input
-        tokens = split_input(line, &count);
-        // Parse and execute
-        ASTNode *tree = parse_line(tokens, count);
-        status = execute_syntax_tree(tree);
-        free_ASTNode(tree);
-        free_tokens(tokens, count);
+
+        status = parse_and_run_command(line, len);
         // Save history
         history_save(line);
     }
@@ -171,7 +181,7 @@ int main(int argc, char **argv) {
     }
 
     if (command != NULL) {
-        return single_command_run(command);
+        return single_command_run(command, strlen(command));
     } else if (optind < argc) {
         return file_run(argv[optind]);
     } else if (!isatty(STDIN_FILENO)) {

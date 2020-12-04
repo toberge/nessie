@@ -9,7 +9,7 @@ man: nessie.1
 nessie.1: man.md
 	pandoc man.md --standalone --to=man -o nessie.1
 
-nessie: nessie.c nessie.h lexer.c builtins.c parser.c executor.c util.c
+nessie: nessie.c nessie.h preprocessor.c lexer.c builtins.c parser.c executor.c util.c
 	$(CC) *.c -o nessie $(CFLAGS)
 
 fuzz: lexer.c tests/*.c

@@ -7,6 +7,7 @@
 
 static char* BUILTIN_NAMES[] = {
     "cd",
+    "let",
     "exit",
     "q",
     "help",
@@ -16,7 +17,8 @@ static char* BUILTIN_NAMES[] = {
 };
 
 static int (*BUILTINS[]) (char**, int) = {
-    cd,
+    nessie_cd,
+    nessie_setenv,
     nessie_exit,
     nessie_exit,
     nessie_help,
@@ -267,6 +269,7 @@ int launch_command(char **tokens, int count) {
     if (O.debug) {
         printf("Read %i tokens: ", count);
         printarr(tokens, count);
+        printf("Launched using launch_command\n");
     }
 
     // Handle builtins

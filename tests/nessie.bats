@@ -22,7 +22,7 @@
 
 # Modes
 
-@test "nessie can read stdin" {
+@test "Nessie can read stdin" {
     # Piping with the run command does not work
     # (Bats is treating the run command _itself_ as part of the pipe)
     run sh -c "echo \"echo it just works # y'know\" | nessie"
@@ -30,7 +30,7 @@
     [ "$output" = "it just works" ]
 }
 
-@test "nessie can read script files" {
+@test "Nessie can read script files" {
     cat <<-EOF > /tmp/test.sh
 	#!/usr/bin/env nessie
 
@@ -75,21 +75,21 @@
 
 # Piping
 
-@test "pipes output through a pair of commands" {
+@test "Pipes output through a pair of commands" {
     run nessie -c 'printf "aaaa\nbbbb\naaaa\n" | grep a'
     [ "$status" -eq 0 ]
     [ "${lines[0]}" = "aaaa" ]
     [ "${lines[1]}" = "aaaa" ]
 }
 
-@test "pipes output through multiple commands" {
+@test "Pipes output through multiple commands" {
     run nessie -c 'printf "aaaa\nbbbb\naaaa\n" | grep a | tr a A'
     [ "$status" -eq 0 ]
     [ "${lines[0]}" = "AAAA" ]
     [ "${lines[1]}" = "AAAA" ]
 }
 
-@test "pipes can be squished together" {
+@test "Pipes can be squished together" {
     run nessie -c 'printf "aaaa\nbbbb\naaaa\n"|grep a|tr a A'
     [ "$status" -eq 0 ]
     [ "${lines[0]}" = "AAAA" ]
@@ -98,7 +98,7 @@
 
 # Statements and short-circuiting
 
-@test "handles multiple statements" {
+@test "Handles multiple statements" {
     run nessie -c "echo one; echo two; echo three"
     [ "$status" -eq 0 ]
     [ "${lines[0]}" = "one" ]
@@ -116,6 +116,58 @@
     run nessie -c "true && true && false && true || echo correct"
     [ "$status" -eq 0 ]
     [ "$output" = "correct" ]
+}
+
+# Variables
+
+@test "Nessie can read environment variables" {
+    SOME_VARIABLE="correct" run nessie -c 'echo $SOME_VARIABLE'
+    [ "$status" -eq 0 ]
+    [ "$output" = "correct" ]
+}
+
+@test "Nessie can set environment variables" {
+    # Note to self: Variables will only be usable on the next line, of course.
+    cat <<-EOF > /tmp/var1.sh
+	let SOME_OTHER_VARIABLE correct
+	echo \$SOME_OTHER_VARIABLE
+	EOF
+    run nessie /tmp/var1.sh
+    [ "$status" -eq 0 ]
+    [ "$output" = "correct" ]
+}
+
+@test "Variables are expanded in double-quoted strings" {
+    x=correct run nessie -c 'echo "$x"'
+    [ "$status" -eq 0 ]
+    [ "$output" = "correct" ]
+}
+
+@test "Variables are not expanded in literal strings" {
+    x=correct run nessie -c "echo '\$x'"
+    [ "$status" -eq 0 ]
+    echo "$output"
+    [ "$output" = '$x' ]
+}
+
+@test "Multi-word variables are expanded properly" {
+    words="there are some words" run nessie -c 'printf "%s%s%s_%s\n" $words'
+    [ "$status" -eq 0 ]
+    [ "$output" = "therearesome_words" ]
+    words="there are some words" run nessie -c 'printf "%s\n" "$words"'
+    [ "$status" -eq 0 ]
+    [ "$output" = "there are some words" ]
+    danger="true && false" run nessie -c 'false || $danger'
+    [ "$status" -eq 1 ]
+    [ -z "$output" ]
+}
+
+@test "Variables are expanded even if they are stuck together with something" {
+    # Swapped out a builtin for `ls` since _something_ is wrong elsewhere
+    x=correct y="correct indeed" run nessie -c 'echo $x; echo $y&& ls'
+    [ "$status" -eq 0 ]
+    [ "${lines[0]}" = "correct" ]
+    [ "${lines[1]}" = "correct indeed" ]
 }
 
 # Parser behaviour
