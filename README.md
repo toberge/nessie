@@ -1,6 +1,6 @@
 # Ne[sh]ie
 
-[![Unit tests](https://github.com/toberge/nessie/workflows/Unit%20tests/badge.svg)](https://github.com/toberge/nessie/actions?query=workflow%3A%22Unit+tests%22)
+[![Integration tests](https://github.com/toberge/nessie/workflows/Integration%20tests/badge.svg)](https://github.com/toberge/nessie/actions?query=workflow%3A%22Integration+tests%22)
 [![Fuzzer tests](https://github.com/toberge/nessie/workflows/Fuzzer%20tests/badge.svg)](https://github.com/toberge/nessie/actions?query=workflow%3A%22Fuzzer+tests%22)
 
 _The absurdly stupid shell_
@@ -38,7 +38,7 @@ You should now be able to execute `nessie` as a regular command, or run the bina
 
 ## Testing
 
-Run unit tests with `make test` or fuzzer tests with `make fuzz`.
+Run integration tests with `make test` or fuzzer tests with `make fuzz`.
 
 ## Usage
 
