@@ -32,9 +32,9 @@ static int (*BUILTINS[]) (char**, int) = {
 
 void printarr(char **arr, int len) {
     for (int i = 0; i < len-1; i++) {
-        printf("'%s', ", arr[i]);
+        printf("'%s' (%lu), ", arr[i], strlen(arr[i]));
     }
-    printf("'%s'\n", arr[len-1]);
+    printf("'%s' (%lu)\n", arr[len-1], strlen(arr[len-1]));
 }
 
 /**

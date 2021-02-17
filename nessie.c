@@ -32,12 +32,12 @@ void display_prompt(int status, char *cwd) {
  * @return exit status of command
  */
 int parse_and_run_command(char *line, int len) {
-        int count, status;
+        int count, status, expanded_len;
         // Insert variables
-        line = expand_variables(line, len);
+        line = expand_variables(line, len, &expanded_len);
         if (!line) return EXIT_SYNTAX_ERROR; // syntax error
         // Read and split input
-        char **tokens = split_input(line, &count);
+        char **tokens = split_input(line, expanded_len, &count);
         // Parse and execute
         ASTNode *tree = parse_line(tokens, count);
         status = execute_syntax_tree(tree);

@@ -75,7 +75,7 @@ enum { OUTSIDE, IN_WORD, IN_STRING };
  * @param num_tokens Set as the length of the token array
  * @return           Array of tokens
  */
-char **split_input(const char *input, int *num_tokens) {
+char **split_input(const char *input, const int input_len, int *num_tokens) {
     int i, n, c, state;
 
     char **tokens = malloc(NESSIE_TOKEN_ARRAY_LENGTH*sizeof(char*));
@@ -92,7 +92,8 @@ char **split_input(const char *input, int *num_tokens) {
     char quote = '"'; // quote type for the curent string
                       // checked if state == IN_STRING
 
-    while ((c = *input++) != '\0') {
+    for (int input_index = 0; input_index < input_len && input[input_index] != '\0'; input_index++) {
+        c = input[input_index];
         // Reallocate memory of array or string if full
         if (n+1 >= arrlen) {
             arrlen += arrlen / 3;
@@ -128,10 +129,10 @@ char **split_input(const char *input, int *num_tokens) {
 
             // Capture the 1-2 instances of the operator
             tokens[n][0] = c;
-            if (*input == c) {
+            if (input_index != input_len && input[input_index+1] == c) {
                 tokens[n][1] = c;
                 tokens[n][2] = '\0';
-                input++;
+                input_index++;
             } else {
                 tokens[n] = realloc(tokens[n], 2*sizeof(char));
                 if (!tokens[n])
@@ -194,6 +195,10 @@ char **split_input(const char *input, int *num_tokens) {
     if (i) { // Terminate the current token
         tokens[n][i] = '\0';
         n++;
+    } else if (i == 0 && n > 0 && tokens[n-1][0] == '\0') {
+        // don't use the last token if it's empty
+        if (O.debug) printf("Empty final token\n");
+        n--;
     } else if (!n) { // No tokens acquired
         free(tokens[0]);
         free(tokens);

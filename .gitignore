@@ -1,4 +1,5 @@
 .ccls-cache
+.gdb_history
 nessie
 nessie.1
 tests/*_test

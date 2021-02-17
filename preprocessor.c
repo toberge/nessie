@@ -14,7 +14,7 @@
  *
  * @return expanded line – all variables replaced by their value
  */
-char *expand_variables(char *line, int len) {
+char *expand_variables(char *line, int len, int *expanded_len) {
     int in_literal = 0;
     char *expanded = malloc(sizeof(char)*len);
     int exp_pos = 0;
@@ -22,7 +22,7 @@ char *expand_variables(char *line, int len) {
 
     for (int i = 0; i < len;) {
         // Realloc if needed
-        if (exp_pos >= exp_len) {
+        if (exp_pos >= exp_len - 1) {
             exp_len += exp_len / 3;
             expanded = realloc(expanded, exp_len*sizeof(char));
         }
@@ -66,6 +66,7 @@ char *expand_variables(char *line, int len) {
     }
 
     expanded[exp_pos] = '\0'; // finally, terminate
+    *expanded_len = exp_pos; // length is UP TO the \0, mind you...
     if (O.debug) printf("Expanded to: %s\n", expanded);
     return expanded;
 }

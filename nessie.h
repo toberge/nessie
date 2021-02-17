@@ -56,9 +56,9 @@ int nessie_history(char **argv, int argc);
 
 // {{{ Lexer
 
-char *expand_variables(char *line, int len); // TODO remove
+char *expand_variables(char *line, int len, int *expanded_len); // TODO remove
 char *read_line(int *len, FILE *file);
-char **split_input(const char *input, int *num_tokens);
+char **split_input(const char *input, const int input_len, int *num_tokens);
 void free_tokens(char **tokens, int len);
 
 // }}}
