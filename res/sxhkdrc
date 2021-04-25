@@ -20,4 +20,10 @@
     sleep 0.1 && xdotool type --delay 40 "history"
 
 7
+    sleep 0.1 && xdotool type --delay 40 'let msg "Hello world"'
+
+8
+    sleep 0.1 && xdotool type --delay 40 'echo "$msg, I am a shell"'
+
+9
     sleep 0.1 && xdotool type --delay 40 "exit"

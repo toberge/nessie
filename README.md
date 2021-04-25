@@ -19,7 +19,7 @@ Minimal shell written in C as a hobby project.
 + [x] History (as builtin)
 + [x] Comments
 + [x] Script files (including stdin)
-+ [ ] Variables
++ [x] Variables
 + [ ] Some keybinds (requires raw mode + rework of input code)
 
 ## Requirements
