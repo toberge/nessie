@@ -1,4 +1,9 @@
-CFLAGS = -O2 -Wall -Wextra -pedantic -std=c99
+CFLAGS := -O2 -Wall -Wextra -pedantic -std=c99
+
+SRC_DIR := src
+SRC := $(wildcard $(SRC_DIR)/*.c)
+LIB := $(wildcard $(SRC_DIR)/*.h)
+FUZZ_FILES := tests/setup.c $(filter-out $(SRC_DIR)/nessie.c, $(SRC))
 
 .PHONY: all man test fuzz run debug install install-local clean
 
@@ -9,12 +14,12 @@ man: nessie.1
 nessie.1: man.md
 	pandoc man.md --standalone --to=man -o nessie.1
 
-nessie: nessie.c nessie.h preprocessor.c lexer.c builtins.c parser.c executor.c util.c
-	$(CC) *.c -o nessie $(CFLAGS)
+nessie: $(LIB) $(SRC)
+	$(CC) $(SRC) -o nessie $(CFLAGS)
 
-fuzz: lexer.c tests/*.c
-	for test in tests/*.c; do\
-	    clang "$$test" lexer.c util.c -o "$${test%.c}" \
+fuzz: $(SRC_DIR)/lexer.c tests/*.c
+	for test in tests/*_fuzzer_test.c; do\
+	    clang "$$test" $(FUZZ_FILES) -o "$${test%.c}" \
 	          $(CFLAGS) -fsanitize=address,fuzzer; \
 	    ./"$${test%.c}" -max_total_time=120 -detect_leaks=0 && \
 	    ./"$${test%.c}" -max_total_time=120; \
@@ -24,10 +29,10 @@ test: nessie
 	bats tests/nessie.bats
 
 run: nessie
-	./nessie
+	@./nessie
 
 debug: nessie
-	./nessie --debug
+	@./nessie --debug
 
 install: nessie nessie.1
 	cp -f nessie /usr/local/bin

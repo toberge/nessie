@@ -7,7 +7,7 @@ char **split_input(const char *input, int *num_tokens);
 
 int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
     // constrain to strings w/o null bytes inside
-    for (int i = 0; i < size; i++)
+    for (size_t i = 0; i < size; i++)
         if (data[i] == '\0')
             return 0; // gotcha!
 
