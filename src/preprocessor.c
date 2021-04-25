@@ -49,9 +49,9 @@ char *expand_variables(char *line, int len, int *expanded_len) {
             if (!value) value = "";
             int value_len = strlen(value);
 
-            // Extend buffer size
+            // Extend buffer size based on value length
             if (exp_pos + value_len >= exp_len) {
-                exp_len += exp_len / 3; // min, dude
+                exp_len += max(value_len, exp_len / 3);
                 expanded = realloc(expanded, exp_len*sizeof(char));
             }
 

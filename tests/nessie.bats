@@ -193,6 +193,16 @@
     [ "${lines[1]}" = "correct indeed" ]
 }
 
+@test "Long variables don't crash the shell" {
+    for length in 100 200 400 800 1600 3200 6400 12800
+    do
+        x=$(printf "%${length}s" | tr " " "a") run nessie -c 'echo $x && true'
+        echo "$output"
+        [ "$status" -eq 0 ]
+        echo "Passed length $length"
+    done
+}
+
 # Parser behaviour
 
 @test "Every operator can be squished together with text" {
