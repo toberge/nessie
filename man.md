@@ -40,8 +40,12 @@ STATEMENT := COMMAND
            | COMMAND && STATEMENT
            | COMMAND || STATEMENT
 COMMAND   := PROG [ARG]* [| COMMAND]*
-PROG, ARG := WORD
-           | "WORD [WORD]*"
+PROG, ARG := TOKEN
+           | "TOKEN [TOKEN]*"
+           | 'WORD [WORD]*'
+TOKEN     := VARIABLE
+           | WORD
+VARIABLE  := $[A-Za-z0-9]+
 WORD      := <just continuous text>
 COMMENT   := <any text following a #>
 ```
@@ -55,8 +59,34 @@ COMMENT   := <any text following a #>
 **Short-circuiting**
 :    Nessie supports conditional execution, also known as short-circuiting, with the **&&** and **||** operators, which correspond to logical **AND** and **OR**. A command that exits with status code 0, triggers the next **&&**. A command that exits with a nonzero status code, triggers the next **||**.
 
+**Variables**
+:    Variables, which are alphanumeric strings following a dollar sign (\$), will expand to whatever their value is. Their values can be set **outside** of Nessie, and passed as environment variables to commands executed by Nessie. Use the **let** builtin to set them.
+
 **Comment**
 :    Anything that folows a **#** that is **not** within a string, is ignored. This is typically used to add informational text to scripts.
+
+# BUILTINS
+
+**cd**
+:    Change directory. Usage: **cd /usr/share/**
+
+**let**
+:    Set an environment variable. Usage: **let fruit apple**
+
+**true**
+:    Returns exit code **0**. Usage: **true && echo "success!"**
+
+**false**
+:    Returns exit code **1**. Usage: **false || echo "failure..."**
+
+**history**
+:    Prints a list of previously executed commands.
+
+**help**
+:    Print some useful information. You'd get more out of reading this manual, though.
+
+**exit**
+:    Exit the shell. Alias: **q**
 
 # EXAMPLES
 
@@ -72,6 +102,10 @@ COMMENT   := <any text following a #>
 
    **nessie script.sh**
 
-3. Run a script/command from standard input
+4. Run a script/command from standard input
 
    **echo "echo something" | nessie**
+
+5. Use an environment variable
+
+   **var="Hello World" nessie -c 'echo "\$var, I am a shell"'**

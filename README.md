@@ -61,11 +61,16 @@ STATEMENT := COMMAND
            | COMMAND && STATEMENT
            | COMMAND || STATEMENT
 COMMAND   := PROG [ARG]* [| COMMAND]*
-PROG, ARG := WORD
-           | "WORD [WORD]*"
+PROG, ARG := TOKEN
+           | "TOKEN [TOKEN]*"
+           | 'WORD [WORD]*'
+TOKEN     := VARIABLE
+           | WORD
+VARIABLE  := $[A-Za-z0-9]+
 WORD      := <just continuous text>
 COMMENT   := <any text following a #>
 ```
+
 
 ## Resources used
 
